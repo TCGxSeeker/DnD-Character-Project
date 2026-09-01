@@ -1,0 +1,28 @@
+# Dependencies and package-manager caches
+node_modules/
+.npm-cache/
+
+# Generated application and installer output
+dist/
+release/
+
+# Local tooling and QA artifacts
+.openai/*
+!.openai/hosting.json
+qa/
+*.log
+.dev-server-*.log
+design-qa.local.md
+
+# Local environments and editor files
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# The historical empty checkout is retained locally only. The application
+# repository is the root containing this file.
+DnD Character Project/

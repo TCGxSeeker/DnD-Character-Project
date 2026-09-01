@@ -1,0 +1,189 @@
+{
+  "generatedAt": "2026-09-01T22:04:39.736Z",
+  "source": "Open5e v2 · SRD 2014 plus local guided-choice catalogs",
+  "totals": {
+    "classes": 13,
+    "classFeatures": 110,
+    "importedSubclasses": 12,
+    "subclassFeatures": 60,
+    "guidedChoices": 21,
+    "missingSubclassRuleSets": 32
+  },
+  "classes": [
+    {
+      "classId": "artificer",
+      "classFeatures": 0,
+      "importedSubclasses": 0,
+      "subclassFeatures": 0,
+      "creationSkills": 2,
+      "guidedChoices": 0,
+      "resourceTracker": false,
+      "missingSubclassRules": [
+        "Alchemist",
+        "Armorer",
+        "Artillerist",
+        "Battle Smith"
+      ]
+    },
+    {
+      "classId": "barbarian",
+      "classFeatures": 13,
+      "importedSubclasses": 1,
+      "subclassFeatures": 4,
+      "creationSkills": 2,
+      "guidedChoices": 0,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "Path of the Totem Warrior"
+      ]
+    },
+    {
+      "classId": "bard",
+      "classFeatures": 10,
+      "importedSubclasses": 1,
+      "subclassFeatures": 4,
+      "creationSkills": 3,
+      "guidedChoices": 5,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "College of Valor"
+      ]
+    },
+    {
+      "classId": "cleric",
+      "classFeatures": 5,
+      "importedSubclasses": 1,
+      "subclassFeatures": 7,
+      "creationSkills": 2,
+      "guidedChoices": 0,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "Knowledge Domain",
+        "Light Domain",
+        "Nature Domain",
+        "Tempest Domain",
+        "Trickery Domain",
+        "War Domain"
+      ]
+    },
+    {
+      "classId": "druid",
+      "classFeatures": 6,
+      "importedSubclasses": 1,
+      "subclassFeatures": 6,
+      "creationSkills": 2,
+      "guidedChoices": 0,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "Circle of the Moon"
+      ]
+    },
+    {
+      "classId": "fighter",
+      "classFeatures": 6,
+      "importedSubclasses": 1,
+      "subclassFeatures": 5,
+      "creationSkills": 2,
+      "guidedChoices": 1,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "Battle Master",
+        "Eldritch Knight"
+      ]
+    },
+    {
+      "classId": "monk",
+      "classFeatures": 18,
+      "importedSubclasses": 1,
+      "subclassFeatures": 4,
+      "creationSkills": 2,
+      "guidedChoices": 0,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "Way of the Four Elements",
+        "Way of Shadow"
+      ]
+    },
+    {
+      "classId": "paladin",
+      "classFeatures": 12,
+      "importedSubclasses": 1,
+      "subclassFeatures": 6,
+      "creationSkills": 2,
+      "guidedChoices": 1,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "Oath of the Ancients",
+        "Oath of Vengeance"
+      ]
+    },
+    {
+      "classId": "ranger",
+      "classFeatures": 12,
+      "importedSubclasses": 1,
+      "subclassFeatures": 4,
+      "creationSkills": 3,
+      "guidedChoices": 7,
+      "resourceTracker": false,
+      "missingSubclassRules": [
+        "Beast Master"
+      ]
+    },
+    {
+      "classId": "rogue",
+      "classFeatures": 12,
+      "importedSubclasses": 1,
+      "subclassFeatures": 5,
+      "creationSkills": 4,
+      "guidedChoices": 2,
+      "resourceTracker": false,
+      "missingSubclassRules": [
+        "Arcane Trickster",
+        "Assassin"
+      ]
+    },
+    {
+      "classId": "sorcerer",
+      "classFeatures": 5,
+      "importedSubclasses": 1,
+      "subclassFeatures": 5,
+      "creationSkills": 2,
+      "guidedChoices": 3,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "Wild Magic"
+      ]
+    },
+    {
+      "classId": "warlock",
+      "classFeatures": 6,
+      "importedSubclasses": 1,
+      "subclassFeatures": 5,
+      "creationSkills": 2,
+      "guidedChoices": 2,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "The Archfey",
+        "The Great Old One"
+      ]
+    },
+    {
+      "classId": "wizard",
+      "classFeatures": 5,
+      "importedSubclasses": 1,
+      "subclassFeatures": 5,
+      "creationSkills": 2,
+      "guidedChoices": 0,
+      "resourceTracker": true,
+      "missingSubclassRules": [
+        "School of Abjuration",
+        "School of Conjuration",
+        "School of Divination",
+        "School of Enchantment",
+        "School of Illusion",
+        "School of Necromancy",
+        "School of Transmutation"
+      ]
+    }
+  ]
+}

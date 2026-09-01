@@ -1,0 +1,68 @@
+{
+  "name": "arcane-observatory",
+  "version": "0.9.0",
+  "description": "A local-first D&D 5e character studio and level-up companion.",
+  "author": "Arcane Observatory contributors",
+  "private": true,
+  "type": "module",
+  "main": "desktop/main.mjs",
+  "scripts": {
+    "dev": "vite",
+    "test": "node --test src/**/*.test.js",
+    "build": "vite build && node scripts/prepare-sites-build.mjs",
+    "preview": "vite preview",
+    "serve:portable": "node scripts/serve-portable.mjs",
+    "test:sites": "node --test tests/sites-worker.test.mjs",
+    "test:portable": "node --test tests/portable-server.test.mjs",
+    "test:matrix": "node scripts/validate-build-matrix.mjs",
+    "test:packaging": "npm run test:sites && npm run test:portable && npm run test:matrix",
+    "desktop": "npm run build && electron .",
+    "dist:windows": "npm run build && electron-builder --win nsis --x64",
+    "sync:classes": "node scripts/sync-open5e-class-content.mjs",
+    "audit:classes": "node scripts/audit-class-depth.mjs"
+  },
+  "devDependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "@vitejs/plugin-react": "5.0.4",
+    "electron": "^44.1.1",
+    "electron-builder": "^26.15.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "vite": "^6.4.3",
+    "vite-plugin-pwa": "^1.1.0"
+  },
+  "build": {
+    "appId": "com.arcaneobservatory.app",
+    "productName": "Arcane Observatory",
+    "directories": {
+      "output": "release"
+    },
+    "npmRebuild": false,
+    "files": [
+      "dist/client/**/*",
+      "desktop/**/*",
+      "scripts/serve-portable.mjs",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/icon-512.png",
+      "artifactName": "Arcane-Observatory-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Arcane Observatory",
+      "uninstallDisplayName": "Arcane Observatory"
+    }
+  }
+}

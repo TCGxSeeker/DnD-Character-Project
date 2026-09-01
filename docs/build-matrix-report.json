@@ -1,0 +1,2089 @@
+{
+  "generatedAt": "2026-09-01T22:47:20.776Z",
+  "edition": "2014",
+  "builds": 260,
+  "classCount": 13,
+  "levelsPerClass": 20,
+  "rows": [
+    {
+      "classId": "artificer",
+      "level": 1,
+      "featureCount": 2,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 10
+    },
+    {
+      "classId": "artificer",
+      "level": 2,
+      "featureCount": 3,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 18
+    },
+    {
+      "classId": "artificer",
+      "level": 3,
+      "featureCount": 9,
+      "grantedSpellCount": 2,
+      "armorClass": 12,
+      "maxHp": 26
+    },
+    {
+      "classId": "artificer",
+      "level": 4,
+      "featureCount": 9,
+      "grantedSpellCount": 2,
+      "armorClass": 12,
+      "maxHp": 34
+    },
+    {
+      "classId": "artificer",
+      "level": 5,
+      "featureCount": 10,
+      "grantedSpellCount": 4,
+      "armorClass": 12,
+      "maxHp": 42
+    },
+    {
+      "classId": "artificer",
+      "level": 6,
+      "featureCount": 11,
+      "grantedSpellCount": 4,
+      "armorClass": 12,
+      "maxHp": 50
+    },
+    {
+      "classId": "artificer",
+      "level": 7,
+      "featureCount": 12,
+      "grantedSpellCount": 4,
+      "armorClass": 12,
+      "maxHp": 58
+    },
+    {
+      "classId": "artificer",
+      "level": 8,
+      "featureCount": 12,
+      "grantedSpellCount": 4,
+      "armorClass": 12,
+      "maxHp": 66
+    },
+    {
+      "classId": "artificer",
+      "level": 9,
+      "featureCount": 13,
+      "grantedSpellCount": 6,
+      "armorClass": 12,
+      "maxHp": 74
+    },
+    {
+      "classId": "artificer",
+      "level": 10,
+      "featureCount": 14,
+      "grantedSpellCount": 6,
+      "armorClass": 12,
+      "maxHp": 82
+    },
+    {
+      "classId": "artificer",
+      "level": 11,
+      "featureCount": 15,
+      "grantedSpellCount": 6,
+      "armorClass": 12,
+      "maxHp": 90
+    },
+    {
+      "classId": "artificer",
+      "level": 12,
+      "featureCount": 15,
+      "grantedSpellCount": 6,
+      "armorClass": 12,
+      "maxHp": 98
+    },
+    {
+      "classId": "artificer",
+      "level": 13,
+      "featureCount": 15,
+      "grantedSpellCount": 8,
+      "armorClass": 12,
+      "maxHp": 106
+    },
+    {
+      "classId": "artificer",
+      "level": 14,
+      "featureCount": 16,
+      "grantedSpellCount": 8,
+      "armorClass": 12,
+      "maxHp": 114
+    },
+    {
+      "classId": "artificer",
+      "level": 15,
+      "featureCount": 17,
+      "grantedSpellCount": 8,
+      "armorClass": 12,
+      "maxHp": 122
+    },
+    {
+      "classId": "artificer",
+      "level": 16,
+      "featureCount": 17,
+      "grantedSpellCount": 8,
+      "armorClass": 12,
+      "maxHp": 130
+    },
+    {
+      "classId": "artificer",
+      "level": 17,
+      "featureCount": 17,
+      "grantedSpellCount": 10,
+      "armorClass": 12,
+      "maxHp": 138
+    },
+    {
+      "classId": "artificer",
+      "level": 18,
+      "featureCount": 18,
+      "grantedSpellCount": 10,
+      "armorClass": 12,
+      "maxHp": 146
+    },
+    {
+      "classId": "artificer",
+      "level": 19,
+      "featureCount": 18,
+      "grantedSpellCount": 10,
+      "armorClass": 12,
+      "maxHp": 154
+    },
+    {
+      "classId": "artificer",
+      "level": 20,
+      "featureCount": 19,
+      "grantedSpellCount": 10,
+      "armorClass": 12,
+      "maxHp": 162
+    },
+    {
+      "classId": "barbarian",
+      "level": 1,
+      "featureCount": 2,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 14
+    },
+    {
+      "classId": "barbarian",
+      "level": 2,
+      "featureCount": 4,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 22
+    },
+    {
+      "classId": "barbarian",
+      "level": 3,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 30
+    },
+    {
+      "classId": "barbarian",
+      "level": 4,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 38
+    },
+    {
+      "classId": "barbarian",
+      "level": 5,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 46
+    },
+    {
+      "classId": "barbarian",
+      "level": 6,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 54
+    },
+    {
+      "classId": "barbarian",
+      "level": 7,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 62
+    },
+    {
+      "classId": "barbarian",
+      "level": 8,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 70
+    },
+    {
+      "classId": "barbarian",
+      "level": 9,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 78
+    },
+    {
+      "classId": "barbarian",
+      "level": 10,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 86
+    },
+    {
+      "classId": "barbarian",
+      "level": 11,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 94
+    },
+    {
+      "classId": "barbarian",
+      "level": 12,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 102
+    },
+    {
+      "classId": "barbarian",
+      "level": 13,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 110
+    },
+    {
+      "classId": "barbarian",
+      "level": 14,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 118
+    },
+    {
+      "classId": "barbarian",
+      "level": 15,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 126
+    },
+    {
+      "classId": "barbarian",
+      "level": 16,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 134
+    },
+    {
+      "classId": "barbarian",
+      "level": 17,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 142
+    },
+    {
+      "classId": "barbarian",
+      "level": 18,
+      "featureCount": 16,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 150
+    },
+    {
+      "classId": "barbarian",
+      "level": 19,
+      "featureCount": 16,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 158
+    },
+    {
+      "classId": "barbarian",
+      "level": 20,
+      "featureCount": 17,
+      "grantedSpellCount": 0,
+      "armorClass": 14,
+      "maxHp": 166
+    },
+    {
+      "classId": "bard",
+      "level": 1,
+      "featureCount": 2,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 10
+    },
+    {
+      "classId": "bard",
+      "level": 2,
+      "featureCount": 4,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 18
+    },
+    {
+      "classId": "bard",
+      "level": 3,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 26
+    },
+    {
+      "classId": "bard",
+      "level": 4,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 34
+    },
+    {
+      "classId": "bard",
+      "level": 5,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 42
+    },
+    {
+      "classId": "bard",
+      "level": 6,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 50
+    },
+    {
+      "classId": "bard",
+      "level": 7,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 58
+    },
+    {
+      "classId": "bard",
+      "level": 8,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 66
+    },
+    {
+      "classId": "bard",
+      "level": 9,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 74
+    },
+    {
+      "classId": "bard",
+      "level": 10,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 82
+    },
+    {
+      "classId": "bard",
+      "level": 11,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 90
+    },
+    {
+      "classId": "bard",
+      "level": 12,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 98
+    },
+    {
+      "classId": "bard",
+      "level": 13,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 106
+    },
+    {
+      "classId": "bard",
+      "level": 14,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 114
+    },
+    {
+      "classId": "bard",
+      "level": 15,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 122
+    },
+    {
+      "classId": "bard",
+      "level": 16,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 130
+    },
+    {
+      "classId": "bard",
+      "level": 17,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 138
+    },
+    {
+      "classId": "bard",
+      "level": 18,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 146
+    },
+    {
+      "classId": "bard",
+      "level": 19,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 154
+    },
+    {
+      "classId": "bard",
+      "level": 20,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 162
+    },
+    {
+      "classId": "cleric",
+      "level": 1,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 10
+    },
+    {
+      "classId": "cleric",
+      "level": 2,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 18
+    },
+    {
+      "classId": "cleric",
+      "level": 3,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 26
+    },
+    {
+      "classId": "cleric",
+      "level": 4,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 34
+    },
+    {
+      "classId": "cleric",
+      "level": 5,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 42
+    },
+    {
+      "classId": "cleric",
+      "level": 6,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 50
+    },
+    {
+      "classId": "cleric",
+      "level": 7,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 58
+    },
+    {
+      "classId": "cleric",
+      "level": 8,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 66
+    },
+    {
+      "classId": "cleric",
+      "level": 9,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 74
+    },
+    {
+      "classId": "cleric",
+      "level": 10,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 82
+    },
+    {
+      "classId": "cleric",
+      "level": 11,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 90
+    },
+    {
+      "classId": "cleric",
+      "level": 12,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 98
+    },
+    {
+      "classId": "cleric",
+      "level": 13,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 106
+    },
+    {
+      "classId": "cleric",
+      "level": 14,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 114
+    },
+    {
+      "classId": "cleric",
+      "level": 15,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 122
+    },
+    {
+      "classId": "cleric",
+      "level": 16,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 130
+    },
+    {
+      "classId": "cleric",
+      "level": 17,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 138
+    },
+    {
+      "classId": "cleric",
+      "level": 18,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 146
+    },
+    {
+      "classId": "cleric",
+      "level": 19,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 154
+    },
+    {
+      "classId": "cleric",
+      "level": 20,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 162
+    },
+    {
+      "classId": "druid",
+      "level": 1,
+      "featureCount": 2,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 10
+    },
+    {
+      "classId": "druid",
+      "level": 2,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 18
+    },
+    {
+      "classId": "druid",
+      "level": 3,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 26
+    },
+    {
+      "classId": "druid",
+      "level": 4,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 34
+    },
+    {
+      "classId": "druid",
+      "level": 5,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 42
+    },
+    {
+      "classId": "druid",
+      "level": 6,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 50
+    },
+    {
+      "classId": "druid",
+      "level": 7,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 58
+    },
+    {
+      "classId": "druid",
+      "level": 8,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 66
+    },
+    {
+      "classId": "druid",
+      "level": 9,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 74
+    },
+    {
+      "classId": "druid",
+      "level": 10,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 82
+    },
+    {
+      "classId": "druid",
+      "level": 11,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 90
+    },
+    {
+      "classId": "druid",
+      "level": 12,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 98
+    },
+    {
+      "classId": "druid",
+      "level": 13,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 106
+    },
+    {
+      "classId": "druid",
+      "level": 14,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 114
+    },
+    {
+      "classId": "druid",
+      "level": 15,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 122
+    },
+    {
+      "classId": "druid",
+      "level": 16,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 130
+    },
+    {
+      "classId": "druid",
+      "level": 17,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 138
+    },
+    {
+      "classId": "druid",
+      "level": 18,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 146
+    },
+    {
+      "classId": "druid",
+      "level": 19,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 154
+    },
+    {
+      "classId": "druid",
+      "level": 20,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 162
+    },
+    {
+      "classId": "fighter",
+      "level": 1,
+      "featureCount": 2,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 12
+    },
+    {
+      "classId": "fighter",
+      "level": 2,
+      "featureCount": 3,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 20
+    },
+    {
+      "classId": "fighter",
+      "level": 3,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 28
+    },
+    {
+      "classId": "fighter",
+      "level": 4,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 36
+    },
+    {
+      "classId": "fighter",
+      "level": 5,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 44
+    },
+    {
+      "classId": "fighter",
+      "level": 6,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 52
+    },
+    {
+      "classId": "fighter",
+      "level": 7,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 60
+    },
+    {
+      "classId": "fighter",
+      "level": 8,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 68
+    },
+    {
+      "classId": "fighter",
+      "level": 9,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 76
+    },
+    {
+      "classId": "fighter",
+      "level": 10,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 84
+    },
+    {
+      "classId": "fighter",
+      "level": 11,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 92
+    },
+    {
+      "classId": "fighter",
+      "level": 12,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 100
+    },
+    {
+      "classId": "fighter",
+      "level": 13,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 108
+    },
+    {
+      "classId": "fighter",
+      "level": 14,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 116
+    },
+    {
+      "classId": "fighter",
+      "level": 15,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 124
+    },
+    {
+      "classId": "fighter",
+      "level": 16,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 132
+    },
+    {
+      "classId": "fighter",
+      "level": 17,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 140
+    },
+    {
+      "classId": "fighter",
+      "level": 18,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 148
+    },
+    {
+      "classId": "fighter",
+      "level": 19,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 156
+    },
+    {
+      "classId": "fighter",
+      "level": 20,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 164
+    },
+    {
+      "classId": "monk",
+      "level": 1,
+      "featureCount": 2,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 10
+    },
+    {
+      "classId": "monk",
+      "level": 2,
+      "featureCount": 4,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 18
+    },
+    {
+      "classId": "monk",
+      "level": 3,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 26
+    },
+    {
+      "classId": "monk",
+      "level": 4,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 34
+    },
+    {
+      "classId": "monk",
+      "level": 5,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 42
+    },
+    {
+      "classId": "monk",
+      "level": 6,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 50
+    },
+    {
+      "classId": "monk",
+      "level": 7,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 58
+    },
+    {
+      "classId": "monk",
+      "level": 8,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 66
+    },
+    {
+      "classId": "monk",
+      "level": 9,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 74
+    },
+    {
+      "classId": "monk",
+      "level": 10,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 82
+    },
+    {
+      "classId": "monk",
+      "level": 11,
+      "featureCount": 16,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 90
+    },
+    {
+      "classId": "monk",
+      "level": 12,
+      "featureCount": 16,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 98
+    },
+    {
+      "classId": "monk",
+      "level": 13,
+      "featureCount": 17,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 106
+    },
+    {
+      "classId": "monk",
+      "level": 14,
+      "featureCount": 18,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 114
+    },
+    {
+      "classId": "monk",
+      "level": 15,
+      "featureCount": 19,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 122
+    },
+    {
+      "classId": "monk",
+      "level": 16,
+      "featureCount": 19,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 130
+    },
+    {
+      "classId": "monk",
+      "level": 17,
+      "featureCount": 20,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 138
+    },
+    {
+      "classId": "monk",
+      "level": 18,
+      "featureCount": 21,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 146
+    },
+    {
+      "classId": "monk",
+      "level": 19,
+      "featureCount": 21,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 154
+    },
+    {
+      "classId": "monk",
+      "level": 20,
+      "featureCount": 22,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 162
+    },
+    {
+      "classId": "paladin",
+      "level": 1,
+      "featureCount": 2,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 12
+    },
+    {
+      "classId": "paladin",
+      "level": 2,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 20
+    },
+    {
+      "classId": "paladin",
+      "level": 3,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 28
+    },
+    {
+      "classId": "paladin",
+      "level": 4,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 36
+    },
+    {
+      "classId": "paladin",
+      "level": 5,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 44
+    },
+    {
+      "classId": "paladin",
+      "level": 6,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 52
+    },
+    {
+      "classId": "paladin",
+      "level": 7,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 60
+    },
+    {
+      "classId": "paladin",
+      "level": 8,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 68
+    },
+    {
+      "classId": "paladin",
+      "level": 9,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 76
+    },
+    {
+      "classId": "paladin",
+      "level": 10,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 84
+    },
+    {
+      "classId": "paladin",
+      "level": 11,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 92
+    },
+    {
+      "classId": "paladin",
+      "level": 12,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 100
+    },
+    {
+      "classId": "paladin",
+      "level": 13,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 108
+    },
+    {
+      "classId": "paladin",
+      "level": 14,
+      "featureCount": 16,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 116
+    },
+    {
+      "classId": "paladin",
+      "level": 15,
+      "featureCount": 17,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 124
+    },
+    {
+      "classId": "paladin",
+      "level": 16,
+      "featureCount": 17,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 132
+    },
+    {
+      "classId": "paladin",
+      "level": 17,
+      "featureCount": 17,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 140
+    },
+    {
+      "classId": "paladin",
+      "level": 18,
+      "featureCount": 17,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 148
+    },
+    {
+      "classId": "paladin",
+      "level": 19,
+      "featureCount": 17,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 156
+    },
+    {
+      "classId": "paladin",
+      "level": 20,
+      "featureCount": 18,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 164
+    },
+    {
+      "classId": "ranger",
+      "level": 1,
+      "featureCount": 2,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 12
+    },
+    {
+      "classId": "ranger",
+      "level": 2,
+      "featureCount": 4,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 20
+    },
+    {
+      "classId": "ranger",
+      "level": 3,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 28
+    },
+    {
+      "classId": "ranger",
+      "level": 4,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 36
+    },
+    {
+      "classId": "ranger",
+      "level": 5,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 44
+    },
+    {
+      "classId": "ranger",
+      "level": 6,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 52
+    },
+    {
+      "classId": "ranger",
+      "level": 7,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 60
+    },
+    {
+      "classId": "ranger",
+      "level": 8,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 68
+    },
+    {
+      "classId": "ranger",
+      "level": 9,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 76
+    },
+    {
+      "classId": "ranger",
+      "level": 10,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 84
+    },
+    {
+      "classId": "ranger",
+      "level": 11,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 92
+    },
+    {
+      "classId": "ranger",
+      "level": 12,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 100
+    },
+    {
+      "classId": "ranger",
+      "level": 13,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 108
+    },
+    {
+      "classId": "ranger",
+      "level": 14,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 116
+    },
+    {
+      "classId": "ranger",
+      "level": 15,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 124
+    },
+    {
+      "classId": "ranger",
+      "level": 16,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 132
+    },
+    {
+      "classId": "ranger",
+      "level": 17,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 140
+    },
+    {
+      "classId": "ranger",
+      "level": 18,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 148
+    },
+    {
+      "classId": "ranger",
+      "level": 19,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 156
+    },
+    {
+      "classId": "ranger",
+      "level": 20,
+      "featureCount": 16,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 164
+    },
+    {
+      "classId": "rogue",
+      "level": 1,
+      "featureCount": 3,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 10
+    },
+    {
+      "classId": "rogue",
+      "level": 2,
+      "featureCount": 4,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 18
+    },
+    {
+      "classId": "rogue",
+      "level": 3,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 26
+    },
+    {
+      "classId": "rogue",
+      "level": 4,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 34
+    },
+    {
+      "classId": "rogue",
+      "level": 5,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 42
+    },
+    {
+      "classId": "rogue",
+      "level": 6,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 50
+    },
+    {
+      "classId": "rogue",
+      "level": 7,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 58
+    },
+    {
+      "classId": "rogue",
+      "level": 8,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 66
+    },
+    {
+      "classId": "rogue",
+      "level": 9,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 74
+    },
+    {
+      "classId": "rogue",
+      "level": 10,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 82
+    },
+    {
+      "classId": "rogue",
+      "level": 11,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 90
+    },
+    {
+      "classId": "rogue",
+      "level": 12,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 98
+    },
+    {
+      "classId": "rogue",
+      "level": 13,
+      "featureCount": 12,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 106
+    },
+    {
+      "classId": "rogue",
+      "level": 14,
+      "featureCount": 13,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 114
+    },
+    {
+      "classId": "rogue",
+      "level": 15,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 122
+    },
+    {
+      "classId": "rogue",
+      "level": 16,
+      "featureCount": 14,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 130
+    },
+    {
+      "classId": "rogue",
+      "level": 17,
+      "featureCount": 15,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 138
+    },
+    {
+      "classId": "rogue",
+      "level": 18,
+      "featureCount": 16,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 146
+    },
+    {
+      "classId": "rogue",
+      "level": 19,
+      "featureCount": 16,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 154
+    },
+    {
+      "classId": "rogue",
+      "level": 20,
+      "featureCount": 17,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 162
+    },
+    {
+      "classId": "sorcerer",
+      "level": 1,
+      "featureCount": 4,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 9
+    },
+    {
+      "classId": "sorcerer",
+      "level": 2,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 18
+    },
+    {
+      "classId": "sorcerer",
+      "level": 3,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 27
+    },
+    {
+      "classId": "sorcerer",
+      "level": 4,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 36
+    },
+    {
+      "classId": "sorcerer",
+      "level": 5,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 45
+    },
+    {
+      "classId": "sorcerer",
+      "level": 6,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 54
+    },
+    {
+      "classId": "sorcerer",
+      "level": 7,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 63
+    },
+    {
+      "classId": "sorcerer",
+      "level": 8,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 72
+    },
+    {
+      "classId": "sorcerer",
+      "level": 9,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 81
+    },
+    {
+      "classId": "sorcerer",
+      "level": 10,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 90
+    },
+    {
+      "classId": "sorcerer",
+      "level": 11,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 99
+    },
+    {
+      "classId": "sorcerer",
+      "level": 12,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 108
+    },
+    {
+      "classId": "sorcerer",
+      "level": 13,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 117
+    },
+    {
+      "classId": "sorcerer",
+      "level": 14,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 126
+    },
+    {
+      "classId": "sorcerer",
+      "level": 15,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 135
+    },
+    {
+      "classId": "sorcerer",
+      "level": 16,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 144
+    },
+    {
+      "classId": "sorcerer",
+      "level": 17,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 153
+    },
+    {
+      "classId": "sorcerer",
+      "level": 18,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 162
+    },
+    {
+      "classId": "sorcerer",
+      "level": 19,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 171
+    },
+    {
+      "classId": "sorcerer",
+      "level": 20,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 15,
+      "maxHp": 180
+    },
+    {
+      "classId": "warlock",
+      "level": 1,
+      "featureCount": 4,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 10
+    },
+    {
+      "classId": "warlock",
+      "level": 2,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 18
+    },
+    {
+      "classId": "warlock",
+      "level": 3,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 26
+    },
+    {
+      "classId": "warlock",
+      "level": 4,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 34
+    },
+    {
+      "classId": "warlock",
+      "level": 5,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 42
+    },
+    {
+      "classId": "warlock",
+      "level": 6,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 50
+    },
+    {
+      "classId": "warlock",
+      "level": 7,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 58
+    },
+    {
+      "classId": "warlock",
+      "level": 8,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 66
+    },
+    {
+      "classId": "warlock",
+      "level": 9,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 74
+    },
+    {
+      "classId": "warlock",
+      "level": 10,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 82
+    },
+    {
+      "classId": "warlock",
+      "level": 11,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 90
+    },
+    {
+      "classId": "warlock",
+      "level": 12,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 98
+    },
+    {
+      "classId": "warlock",
+      "level": 13,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 106
+    },
+    {
+      "classId": "warlock",
+      "level": 14,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 114
+    },
+    {
+      "classId": "warlock",
+      "level": 15,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 122
+    },
+    {
+      "classId": "warlock",
+      "level": 16,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 130
+    },
+    {
+      "classId": "warlock",
+      "level": 17,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 138
+    },
+    {
+      "classId": "warlock",
+      "level": 18,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 146
+    },
+    {
+      "classId": "warlock",
+      "level": 19,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 154
+    },
+    {
+      "classId": "warlock",
+      "level": 20,
+      "featureCount": 11,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 162
+    },
+    {
+      "classId": "wizard",
+      "level": 1,
+      "featureCount": 2,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 8
+    },
+    {
+      "classId": "wizard",
+      "level": 2,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 16
+    },
+    {
+      "classId": "wizard",
+      "level": 3,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 24
+    },
+    {
+      "classId": "wizard",
+      "level": 4,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 32
+    },
+    {
+      "classId": "wizard",
+      "level": 5,
+      "featureCount": 5,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 40
+    },
+    {
+      "classId": "wizard",
+      "level": 6,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 48
+    },
+    {
+      "classId": "wizard",
+      "level": 7,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 56
+    },
+    {
+      "classId": "wizard",
+      "level": 8,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 64
+    },
+    {
+      "classId": "wizard",
+      "level": 9,
+      "featureCount": 6,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 72
+    },
+    {
+      "classId": "wizard",
+      "level": 10,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 80
+    },
+    {
+      "classId": "wizard",
+      "level": 11,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 88
+    },
+    {
+      "classId": "wizard",
+      "level": 12,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 96
+    },
+    {
+      "classId": "wizard",
+      "level": 13,
+      "featureCount": 7,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 104
+    },
+    {
+      "classId": "wizard",
+      "level": 14,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 112
+    },
+    {
+      "classId": "wizard",
+      "level": 15,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 120
+    },
+    {
+      "classId": "wizard",
+      "level": 16,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 128
+    },
+    {
+      "classId": "wizard",
+      "level": 17,
+      "featureCount": 8,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 136
+    },
+    {
+      "classId": "wizard",
+      "level": 18,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 144
+    },
+    {
+      "classId": "wizard",
+      "level": 19,
+      "featureCount": 9,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 152
+    },
+    {
+      "classId": "wizard",
+      "level": 20,
+      "featureCount": 10,
+      "grantedSpellCount": 0,
+      "armorClass": 12,
+      "maxHp": 160
+    }
+  ]
+}

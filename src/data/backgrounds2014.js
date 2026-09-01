@@ -1,0 +1,23 @@
+const background = (id, name, skills, feature, details = {}) => ({
+  id, name, skills, feature, tools: [], languages: [], equipment: "Starting gear is represented by the selected class package.", ...details,
+});
+
+export const BACKGROUNDS_2014 = [
+  background("acolyte", "Acolyte", ["Insight", "Religion"], { name: "Shelter of the Faithful", summary: "Your temple and fellow adherents can provide modest support and religious services when appropriate." }, { languages: ["Two of your choice"], roleplay: "Define the faith, temple, or doctrine that shaped you." }),
+  background("charlatan", "Charlatan", ["Deception", "Sleight of Hand"], { name: "False Identity", summary: "You maintain a documented second identity with its own established history." }, { tools: ["Disguise kit", "Forgery kit"], roleplay: "Choose a favored con and the identity you use to support it." }),
+  background("criminal", "Criminal", ["Deception", "Stealth"], { name: "Criminal Contact", summary: "You have a reliable contact who connects you to a criminal network." }, { tools: ["One gaming set", "Thieves' tools"], roleplay: "Describe your specialty and the contact who still knows your name." }),
+  background("entertainer", "Entertainer", ["Acrobatics", "Performance"], { name: "By Popular Demand", summary: "You can usually find a venue to perform in exchange for food and lodging." }, { tools: ["Disguise kit", "One musical instrument"], roleplay: "Choose your performance routine and a memorable early audience." }),
+  background("folk-hero", "Folk Hero", ["Animal Handling", "Survival"], { name: "Rustic Hospitality", summary: "Common folk tend to shelter and protect you when doing so does not endanger them." }, { tools: ["One artisan's tool", "Vehicles (land)"], roleplay: "Name the defining event that made local people consider you a hero." }),
+  background("guild-artisan", "Guild Artisan", ["Insight", "Persuasion"], { name: "Guild Membership", summary: "Your guild offers professional standing, contacts, and limited support in exchange for dues and obligations." }, { tools: ["One artisan's tool"], languages: ["One of your choice"], roleplay: "Choose your guild, craft, and the obligation that comes with membership." }),
+  background("hermit", "Hermit", ["Medicine", "Religion"], { name: "Discovery", summary: "Your seclusion revealed a unique truth; define it with the table so it fits the campaign." }, { tools: ["Herbalism kit"], languages: ["One of your choice"], roleplay: "Explain why you withdrew and what discovery brought you back." }),
+  background("noble", "Noble", ["History", "Persuasion"], { name: "Position of Privilege", summary: "People generally recognize your station, and high society is more willing to receive you." }, { tools: ["One gaming set"], languages: ["One of your choice"], roleplay: "Name your title, family, and the responsibility attached to them." }),
+  background("outlander", "Outlander", ["Athletics", "Survival"], { name: "Wanderer", summary: "You remember terrain and settlements well and can usually find food and water in suitable country." }, { tools: ["One musical instrument"], languages: ["One of your choice"], roleplay: "Choose the distant land or wandering culture that you call home." }),
+  background("sage", "Sage", ["Arcana", "History"], { name: "Researcher", summary: "When you do not know a piece of lore, you usually know where or from whom it may be learned." }, { languages: ["Two of your choice"], roleplay: "Choose your academic specialty and the unanswered question driving you." }),
+  background("sailor", "Sailor", ["Athletics", "Perception"], { name: "Ship's Passage", summary: "Your maritime contacts can often secure passage for you and your companions, though work may be expected." }, { tools: ["Navigator's tools", "Vehicles (water)"], roleplay: "Name your former vessel, duty, and reputation among its crew." }),
+  background("soldier", "Soldier", ["Athletics", "Intimidation"], { name: "Military Rank", summary: "Soldiers loyal to your former organization generally recognize your rank and influence." }, { tools: ["One gaming set", "Vehicles (land)"], roleplay: "Choose your unit, rank, specialty, and the conflict that marked you." }),
+  background("urchin", "Urchin", ["Sleight of Hand", "Stealth"], { name: "City Secrets", summary: "You know the hidden patterns and passages that let you guide a group through a city unusually quickly." }, { tools: ["Disguise kit", "Thieves' tools"], roleplay: "Describe the city, community, or survival habit that raised you." }),
+];
+
+export function findBackground(id) {
+  return BACKGROUNDS_2014.find((entry) => entry.id === id) || BACKGROUNDS_2014[0];
+}
