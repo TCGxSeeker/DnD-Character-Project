@@ -17,7 +17,7 @@
     "test:matrix": "node scripts/validate-build-matrix.mjs",
     "test:packaging": "npm run test:sites && npm run test:portable && npm run test:matrix",
     "desktop": "npm run build && electron .",
-    "dist:windows": "npm run build && electron-builder --win nsis --x64",
+    "dist:windows": "npm run build && electron-builder --win nsis --x64 --publish never",
     "sync:classes": "node scripts/sync-open5e-class-content.mjs",
     "audit:classes": "node scripts/audit-class-depth.mjs"
   },
