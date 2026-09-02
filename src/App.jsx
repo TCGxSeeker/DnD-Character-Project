@@ -9,6 +9,7 @@ import { resolveCharacterPortrait } from "./domain/portraits.js";
 import { exportState } from "./data/store.js";
 import { prepareCharacterImport } from "./importers/characterImport.js";
 import { useCharacterStore } from "./data/useCharacterStore.js";
+import { useContentStore } from "./data/useContentStore.js";
 import { totalCharacterLevel } from "./domain/rules.js";
 import vaelithra from "./assets/vaelithra.png";
 import borin from "./assets/borin.png";
@@ -26,6 +27,7 @@ const HistoryView = lazy(() => import("./features/DetailsViews.jsx").then((modul
 const CharacterCreator = lazy(() => import("./features/CharacterCreator.jsx").then((module) => ({ default: module.CharacterCreator })));
 const LevelUpWizard = lazy(() => import("./features/LevelUpWizard.jsx").then((module) => ({ default: module.LevelUpWizard })));
 const CharacterManager = lazy(() => import("./features/CharacterManager.jsx").then((module) => ({ default: module.CharacterManager })));
+const ContentManager = lazy(() => import("./features/ContentManager.jsx").then((module) => ({ default: module.ContentManager })));
 
 function ViewFallback() {
   return <div className="view-fallback glass-panel material-primary" role="status"><Sparkle size={22} /><span>Opening character records…</span></div>;
@@ -42,11 +44,21 @@ const tabs = [
 
 export function App() {
   const { state, setState, activeCharacter, setActive, updateActive, addCharacter, saveError } = useCharacterStore();
+  const {
+    ready: contentReady,
+    storageError: contentStorageError,
+    installedPacks,
+    activePacks,
+    installPack,
+    removePack,
+    setPackEnabled,
+  } = useContentStore();
   const [activeTab, setActiveTab] = useState("sheet");
   const [creatorOpen, setCreatorOpen] = useState(false);
   const [levelUpOpen, setLevelUpOpen] = useState(false);
   const [creationTargetLevel, setCreationTargetLevel] = useState(null);
   const [managerOpen, setManagerOpen] = useState(false);
+  const [contentManagerOpen, setContentManagerOpen] = useState(false);
   const [importCandidate, setImportCandidate] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast] = useState("");
@@ -151,7 +163,7 @@ export function App() {
       <div className={`mobile-scrim ${sidebarOpen ? "visible" : ""}`} onClick={() => setSidebarOpen(false)} />
       <div className={`sidebar-wrap ${sidebarOpen ? "open" : ""}`}>
         <button className="mobile-sidebar-close icon-button" onClick={() => setSidebarOpen(false)} aria-label="Close character list"><X size={20} /></button>
-        <CharacterSidebar characters={state.characters} activeId={state.activeCharacterId} onSelect={setActive} onNew={() => setCreatorOpen(true)} onManage={() => setManagerOpen(true)} onExport={handleExport} onImport={handleImport} avatarMap={avatarMap} avatarFallback={vaelithra} compact onClose={() => setSidebarOpen(false)} />
+        <CharacterSidebar characters={state.characters} activeId={state.activeCharacterId} onSelect={setActive} onNew={() => setCreatorOpen(true)} onManage={() => setManagerOpen(true)} onManageContent={() => setContentManagerOpen(true)} onExport={handleExport} onImport={handleImport} avatarMap={avatarMap} avatarFallback={vaelithra} compact onClose={() => setSidebarOpen(false)} />
       </div>
 
       <main className="main-stage">
@@ -171,9 +183,25 @@ export function App() {
       {(toast || saveError) && <div className={`toast ${saveError ? "error" : ""}`}>{saveError || toast}</div>}
       <Suspense fallback={null}>
         {importCandidate && <CharacterImportModal candidate={importCandidate} onClose={() => setImportCandidate(null)} onConfirm={() => { addCharacter(importCandidate.character); setImportCandidate(null); setActiveTab("sheet"); setSidebarOpen(false); notify(`${importCandidate.character.name} imported as a native character.`); }} />}
-        {creatorOpen && <CharacterCreator onClose={() => setCreatorOpen(false)} onCreate={(character, targetLevel) => { addCharacter(character); setActiveTab("sheet"); setCreationTargetLevel(targetLevel > 1 ? targetLevel : null); notify(targetLevel > 1 ? `${character.name} created at level 1. Guided progression is starting.` : `${character.name} created.`); }} />}
+        {creatorOpen && <CharacterCreator activePacks={activePacks} onClose={() => setCreatorOpen(false)} onCreate={(character, targetLevel) => { addCharacter(character); setActiveTab("sheet"); setCreationTargetLevel(targetLevel > 1 ? targetLevel : null); notify(targetLevel > 1 ? `${character.name} created at level 1. Guided progression is starting.` : `${character.name} created.`); }} />}
         {managerOpen && <CharacterManager characters={state.characters} activeId={state.activeCharacterId} onClose={() => setManagerOpen(false)} onSelect={(id) => { setActive(id); notify("Active character changed."); }} onDuplicate={duplicateCharacter} onDelete={deleteCharacter} />}
-        {levelUpOpen && activeCharacter && <LevelUpWizard character={activeCharacter} targetLevel={creationTargetLevel} onClose={(result) => { setLevelUpOpen(false); if (!result?.committed && creationTargetLevel) { setCreationTargetLevel(null); notify(`Guided starting-level progression paused at level ${totalCharacterLevel(activeCharacter.classLevels)}.`); } }} onCommit={(character) => { updateActive(character); notify(creationTargetLevel && totalCharacterLevel(character.classLevels) < creationTargetLevel ? `${character.name} advanced. Preparing the next level.` : `${character.name} advanced successfully.`); }} />}
+        {contentManagerOpen && (
+          <ContentManager
+            ready={contentReady}
+            storageError={contentStorageError}
+            installedPacks={installedPacks}
+            onInstall={(pack) => {
+              installPack(pack);
+              notify(`${pack.pack.name} installed locally.`);
+            }}
+            onRemove={(packId) => {
+              removePack(packId);
+            }}
+            onSetEnabled={setPackEnabled}
+            onClose={() => setContentManagerOpen(false)}
+          />
+        )}
+        {levelUpOpen && activeCharacter && <LevelUpWizard character={activeCharacter} targetLevel={creationTargetLevel} activePacks={activePacks} onClose={(result) => { setLevelUpOpen(false); if (!result?.committed && creationTargetLevel) { setCreationTargetLevel(null); notify(`Guided starting-level progression paused at level ${totalCharacterLevel(activeCharacter.classLevels)}.`); } }} onCommit={(character) => { updateActive(character); notify(creationTargetLevel && totalCharacterLevel(character.classLevels) < creationTargetLevel ? `${character.name} advanced. Preparing the next level.` : `${character.name} advanced successfully.`); }} />}
       </Suspense>
     </div>
   );

@@ -11,7 +11,11 @@ import { startingSavingThrows } from "../domain/savingThrows.js";
 import { pactMagicForClassLevels, syncGrantedClassResources } from "../domain/classResources2014.js";
 import { creationChoicesForClass } from "../data/classChoices2014.js";
 import { creationResolvableClassChoices, resolveCreationClassChoices } from "../domain/classChoices.js";
-import { SUBCLASS_RULES, findSubclassOption } from "../domain/progression.js";
+import {
+  findSubclassOptionWithContent,
+  localSubclassFeaturesForLevel,
+  subclassRuleForClass,
+} from "../data/contentCatalog.js";
 import { calculateCharacterMaxHp } from "../domain/derivedMechanics.js";
 import { hitDicePools } from "../domain/multiclass.js";
 import { startingProficiencies } from "../data/startingProficiencies2014.js";
@@ -24,7 +28,7 @@ function Modifier({ amount }) {
   return <b className={amount > 0 ? "positive" : "negative"}>{amount > 0 ? "+" : ""}{amount} ancestry</b>;
 }
 
-export function CharacterCreator({ onClose, onCreate }) {
+export function CharacterCreator({ activePacks = [], onClose, onCreate }) {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({ name: "", ancestryId: "human", ancestryOptionId: "standard", backgroundId: "acolyte", classId: "druid", subclassId: "", advancement: "milestone", startingLevel: 1, abilityMethod: "manual", equipmentSelections: {}, weaponSubstitutions: {}, classSkills: ["Arcana", "Animal Handling"], classChoiceSelections: {}, abilities: defaultAbilities });
   const rule = CLASS_RULES[form.classId];
@@ -34,7 +38,8 @@ export function CharacterCreator({ onClose, onCreate }) {
   const ancestryDetails = useMemo(() => ancestryCreationDetails(ancestryRule, ancestryOption), [ancestryRule, ancestryOption]);
   const background = findBackground(form.backgroundId);
   const classChoices = creationChoicesForClass(form.classId);
-  const levelOneSubclass = SUBCLASS_RULES[form.classId]?.level === 1 ? SUBCLASS_RULES[form.classId] : null;
+  const subclassRule = subclassRuleForClass(form.classId, activePacks);
+  const levelOneSubclass = subclassRule?.level === 1 ? subclassRule : null;
   const availableClassSkills = classChoices.skills.options.filter((skill) => !background.skills.includes(skill));
   const finalAbilities = applyFixedAbilityAdjustments(form.abilities, ancestryDetails.fixedAdjustments);
   const pointBuyValid = form.abilityMethod !== "point-buy" || validatePointBuy(form.abilities);
@@ -84,13 +89,21 @@ export function CharacterCreator({ onClose, onCreate }) {
     if (!name || !abilitiesValid || !creationChoicesComplete || !subclassComplete) return;
     const now = new Date().toISOString();
     const resolvedCreationChoices = resolveCreationClassChoices(form.classId, startingSkills, form.classChoiceSelections);
+    const localSubclassFeatures = form.subclassId
+      ? localSubclassFeaturesForLevel(
+          form.classId,
+          form.subclassId,
+          1,
+          activePacks,
+        )
+      : [];
     const baseMaxHp = levelOneHitPoints(rule.hitDie, finalAbilities.constitution);
     const id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
     const createdCharacter = {
       id, name, ancestry: ancestryDisplayName(form.ancestryId, form.ancestryOptionId), ancestryId: form.ancestryId, ancestryOptionId: form.ancestryOptionId,
       background: background.name, backgroundId: background.id, backgroundFeature: background.feature, alignment: "Unaligned", avatar: "vaelithra",
       advancement: form.advancement, experience: 0,
-      classLevels: [{ classId: form.classId, level: 1, ...(form.subclassId ? { subclassId: form.subclassId, subclass: findSubclassOption(form.classId, form.subclassId)?.name } : {}) }],
+      classLevels: [{ classId: form.classId, level: 1, ...(form.subclassId ? { subclassId: form.subclassId, subclass: findSubclassOptionWithContent(form.classId, form.subclassId, activePacks)?.name } : {}) }],
       levelHistory: [{ level: 1, classId: form.classId, baseHp: rule.hitDie, hpMethod: "maximum", createdAt: now }],
       abilities: finalAbilities, hp: baseMaxHp, maxHp: baseMaxHp, tempHp: 0,
       armorClass: 10 + abilityModifier(finalAbilities.dexterity) + (ancestryRule.armorClassBonus || 0),
@@ -100,7 +113,19 @@ export function CharacterCreator({ onClose, onCreate }) {
       skills: startingSkills, saves: startingSavingThrows(form.classId), proficiencies: startingProficiencies(form.classId, background), languages: ["Common", ...background.languages], spells: [], inventory: equipment, companions: [],
       classChoices: resolvedCreationChoices,
       expertise: resolvedCreationChoices.filter((choice) => choice.kind === "expertise").flatMap((choice) => choice.selections || []),
-      features: resolvedCreationChoices.filter((choice) => choice.kind !== "expertise").map((choice) => ({ id: `class-choice-${choice.id}`, name: choice.label, source: `${rule.name} 1`, detail: choice.selections.join(", "), benefits: choice.selections.map((entry) => `Selected: ${entry}.`) })), notes: "", sessionEntries: [], personality: "", ideals: "", bonds: "", flaws: "",
+      features: [
+        ...resolvedCreationChoices
+          .filter((choice) => choice.kind !== "expertise")
+          .map((choice) => ({
+            id: `class-choice-${choice.id}`,
+            name: choice.label,
+            source: `${rule.name} 1`,
+            detail: choice.selections.join(", "),
+            benefits: choice.selections.map((entry) => `Selected: ${entry}.`),
+          })),
+        ...localSubclassFeatures,
+      ],
+      notes: "", sessionEntries: [], personality: "", ideals: "", bonds: "", flaws: "",
       history: [{ id: `created-${Date.now()}`, type: "created", title: "Character created", detail: `${rule.name} · ${background.name} · guided target level ${form.startingLevel}`, changes: { itemsAdded: equipment.map((item) => item.name) }, createdAt: now }],
       createdAt: now, updatedAt: now,
     };

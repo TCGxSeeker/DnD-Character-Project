@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "kind": "arcane-observatory-content-pack",
+  "pack": {
+    "id": "observatory-test-paladin",
+    "name": "Observatory Test Paladin",
+    "ruleset": "5e-2014",
+    "version": "1.0.0",
+    "scope": "local",
+    "source": {
+      "title": "Arcane Observatory Development Fixture",
+      "reference": "local-development",
+      "notes": "Original test content used to verify local content ingestion."
+    }
+  },
+  "subclasses": [
+    {
+      "id": "paladin:observatory-oath",
+      "classId": "paladin",
+      "name": "Oath of the Observatory",
+      "summary": "A development-only paladin oath used to verify local content packs.",
+      "featureIds": [
+        "paladin:observatory-oath:tenets",
+        "paladin:observatory-oath:channel",
+        "paladin:observatory-oath:aura",
+        "paladin:observatory-oath:capstone"
+      ],
+      "mechanicsStatus": "descriptive-only"
+    }
+  ],
+  "features": [
+    {
+      "id": "paladin:observatory-oath:tenets",
+      "name": "Observatory Tenets",
+      "type": "subclass-feature",
+      "classId": "paladin",
+      "subclassId": "paladin:observatory-oath",
+      "level": 3,
+      "summary": "Development fixture feature for the Oath of the Observatory.",
+      "mechanicsStatus": "descriptive-only"
+    },
+    {
+      "id": "paladin:observatory-oath:channel",
+      "name": "Channel Observatory",
+      "type": "subclass-feature",
+      "classId": "paladin",
+      "subclassId": "paladin:observatory-oath",
+      "level": 3,
+      "summary": "Development fixture channel feature.",
+      "mechanicsStatus": "descriptive-only"
+    },
+    {
+      "id": "paladin:observatory-oath:aura",
+      "name": "Aura of Observation",
+      "type": "subclass-feature",
+      "classId": "paladin",
+      "subclassId": "paladin:observatory-oath",
+      "level": 7,
+      "summary": "Development fixture aura feature.",
+      "mechanicsStatus": "descriptive-only"
+    },
+    {
+      "id": "paladin:observatory-oath:capstone",
+      "name": "Perfect Observation",
+      "type": "subclass-feature",
+      "classId": "paladin",
+      "subclassId": "paladin:observatory-oath",
+      "level": 20,
+      "summary": "Development fixture capstone feature.",
+      "mechanicsStatus": "descriptive-only"
+    }
+  ]
+}

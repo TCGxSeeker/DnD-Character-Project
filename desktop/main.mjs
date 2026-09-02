@@ -1,13 +1,160 @@
-import { app, BrowserWindow, dialog, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import {
+  mkdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { join } from "node:path";
 import { createPortableServer } from "../scripts/serve-portable.mjs";
 
 const APP_PORT = 41731;
 const APP_ORIGIN = `http://127.0.0.1:${APP_PORT}`;
+const CONTENT_DIRECTORY_NAME = "content";
+const CONTENT_REPOSITORY_FILE = "repository.json";
+const MAX_CONTENT_REPOSITORY_BYTES = 25 * 1024 * 1024;
 const isSmokeTest = process.argv.includes("--smoke-test");
 let applicationServer;
 let mainWindow;
 
+function contentDirectoryPath() {
+  return join(
+    app.getPath("userData"),
+    CONTENT_DIRECTORY_NAME,
+  );
+}
+
+function contentRepositoryPath() {
+  return join(
+    contentDirectoryPath(),
+    CONTENT_REPOSITORY_FILE,
+  );
+}
+
+async function loadDesktopContentRepository() {
+  const filePath = contentRepositoryPath();
+
+  try {
+    const text = await readFile(filePath, "utf8");
+
+    return {
+      exists: true,
+      repositoryJson: text,
+    };
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return {
+        exists: false,
+        repositoryJson: null,
+      };
+    }
+
+    throw error;
+  }
+}
+
+async function saveDesktopContentRepository(
+  repositoryJson,
+) {
+  if (typeof repositoryJson !== "string") {
+    throw new TypeError(
+      "Desktop content repository must be serialized JSON.",
+    );
+  }
+
+  const byteLength = Buffer.byteLength(
+    repositoryJson,
+    "utf8",
+  );
+
+  if (byteLength > MAX_CONTENT_REPOSITORY_BYTES) {
+    throw new Error(
+      "Desktop content repository exceeds the 25 MB safety limit.",
+    );
+  }
+
+  // Parse here as a basic corruption guard. The renderer remains
+  // responsible for validating the Arcane Observatory repository schema.
+  JSON.parse(repositoryJson);
+
+  const directory = contentDirectoryPath();
+  const filePath = contentRepositoryPath();
+  const temporaryPath = `${filePath}.tmp`;
+
+  await mkdir(directory, { recursive: true });
+
+  try {
+    await writeFile(
+      temporaryPath,
+      repositoryJson,
+      "utf8",
+    );
+
+    // Windows replacement semantics are more reliable when the old
+    // destination is explicitly removed before the temporary file moves.
+    await rm(filePath, { force: true });
+
+    const temporaryContents = await readFile(
+      temporaryPath,
+      "utf8",
+    );
+
+    await writeFile(
+      filePath,
+      temporaryContents,
+      "utf8",
+    );
+
+    await rm(temporaryPath, { force: true });
+  } catch (error) {
+    await rm(temporaryPath, { force: true })
+      .catch(() => {});
+    throw error;
+  }
+
+  return {
+    saved: true,
+    byteLength,
+  };
+}
+
+async function clearDesktopContentRepository() {
+  await rm(
+    contentRepositoryPath(),
+    { force: true },
+  );
+
+  return {
+    cleared: true,
+  };
+}
+
+function registerContentIpc() {
+  ipcMain.handle(
+    "content:load-repository",
+    () => loadDesktopContentRepository(),
+  );
+
+  ipcMain.handle(
+    "content:save-repository",
+    (_event, repositoryJson) =>
+      saveDesktopContentRepository(repositoryJson),
+  );
+
+  ipcMain.handle(
+    "content:clear-repository",
+    () => clearDesktopContentRepository(),
+  );
+
+  ipcMain.handle(
+    "content:storage-info",
+    () => ({
+      kind: "filesystem",
+      directory: contentDirectoryPath(),
+      repositoryFile: contentRepositoryPath(),
+    }),
+  );
+}
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -22,6 +169,11 @@ function createMainWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      preload: join(
+        app.getAppPath(),
+        "desktop",
+        "preload.cjs",
+      ),
     },
   });
 
@@ -67,7 +219,10 @@ if (!hasSingleInstanceLock) {
     }
   });
 
-  app.whenReady().then(startApplication).catch((error) => {
+  app.whenReady().then(() => {
+    registerContentIpc();
+    return startApplication();
+  }).catch((error) => {
     dialog.showErrorBox(
       "Arcane Observatory could not start",
       error?.code === "EADDRINUSE"

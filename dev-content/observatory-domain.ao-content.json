@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "kind": "arcane-observatory-content-pack",
+  "pack": {
+    "id": "observatory-test-cleric",
+    "name": "Observatory Test Cleric",
+    "ruleset": "5e-2014",
+    "version": "1.0.0",
+    "scope": "local",
+    "source": {
+      "title": "Arcane Observatory Development Fixture",
+      "reference": "local-development",
+      "notes": "Original development content for testing level-one subclass creation."
+    }
+  },
+  "subclasses": [
+    {
+      "id": "cleric:observatory-domain",
+      "classId": "cleric",
+      "name": "Observatory Domain",
+      "summary": "A development-only cleric domain used to verify creation-time local subclass resolution.",
+      "featureIds": [
+        "cleric:observatory-domain:training",
+        "cleric:observatory-domain:insight"
+      ],
+      "mechanicsStatus": "descriptive-only"
+    }
+  ],
+  "features": [
+    {
+      "id": "cleric:observatory-domain:training",
+      "name": "Observatory Training",
+      "type": "subclass-feature",
+      "classId": "cleric",
+      "subclassId": "cleric:observatory-domain",
+      "level": 1,
+      "summary": "Development fixture feature.",
+      "mechanicsStatus": "descriptive-only"
+    },
+    {
+      "id": "cleric:observatory-domain:insight",
+      "name": "Observatory Insight",
+      "type": "subclass-feature",
+      "classId": "cleric",
+      "subclassId": "cleric:observatory-domain",
+      "level": 1,
+      "summary": "Development fixture feature.",
+      "mechanicsStatus": "descriptive-only"
+    }
+  ]
+}

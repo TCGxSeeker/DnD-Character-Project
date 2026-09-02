@@ -1,8 +1,8 @@
-import { Archive, CompassRose, DownloadSimple, MagnifyingGlass, Plus, UploadSimple } from "@phosphor-icons/react";
+import { Archive, Books, CompassRose, DownloadSimple, MagnifyingGlass, Plus, UploadSimple } from "@phosphor-icons/react";
 import { totalCharacterLevel, CLASS_RULES } from "../domain/rules.js";
 import { resolveCharacterPortrait } from "../domain/portraits.js";
 
-export function CharacterSidebar({ characters, activeId, onSelect, onNew, onManage, onExport, onImport, avatarMap, avatarFallback, compact, onClose }) {
+export function CharacterSidebar({ characters, activeId, onSelect, onNew, onManage, onManageContent, onExport, onImport, avatarMap, avatarFallback, compact, onClose }) {
   return (
     <aside className={`character-sidebar glass-panel material-floating ${compact ? "compact" : ""}`}>
       <div className="brand-lockup">
@@ -25,6 +25,7 @@ export function CharacterSidebar({ characters, activeId, onSelect, onNew, onMana
       </div>
       <div className="sidebar-spacer" />
       <button className="manage-button" onClick={onManage}><Archive size={18} /> Manage characters</button>
+      <button className="manage-button" onClick={onManageContent}><Books size={18} /> Manage content</button>
       <div className="local-status"><span className="status-dot" /> All changes saved locally</div>
       <div className="data-actions">
         <button onClick={onExport}><DownloadSimple size={16} /> Export</button>

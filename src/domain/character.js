@@ -7,7 +7,12 @@ import {
   validateMulticlassPrerequisites,
 } from "./rules.js";
 import { createSubclassCompanion, deriveCompanionStats } from "./companions.js";
-import { abilityScoreChoiceForLevel, findSubclassOption, subclassChoiceForLevel } from "./progression.js";
+import { abilityScoreChoiceForLevel } from "./progression.js";
+import {
+  findSubclassOptionWithContent,
+  localSubclassFeaturesForLevel,
+  subclassChoiceForLevelWithContent,
+} from "../data/contentCatalog.js";
 import { featEligibility, findFeat } from "./feats.js";
 import { grantedContentDelta } from "./grantedContent.js";
 import { appendHistoryEvent } from "./history.js";
@@ -79,7 +84,7 @@ function applyAbilityScoreChoice(character, draft, choice, targetClassName) {
   };
 }
 
-export function createLevelUpPreview(character, draft) {
+export function createLevelUpPreview(character, draft, activePacks = []) {
   const targetClass = CLASS_RULES[draft.classId];
   if (!targetClass) throw new Error("Choose a valid class.");
   if (totalCharacterLevel(character.classLevels) >= 20) throw new Error("This character is already level 20.");
@@ -95,8 +100,8 @@ export function createLevelUpPreview(character, draft) {
     }
   }
 
-  const subclassChoice = subclassChoiceForLevel(character, draft.classId);
-  const subclassOption = subclassChoice ? findSubclassOption(draft.classId, draft.subclassId) : null;
+  const subclassChoice = subclassChoiceForLevelWithContent(character, draft.classId, activePacks);
+  const subclassOption = subclassChoice ? findSubclassOptionWithContent(draft.classId, draft.subclassId, activePacks) : null;
   if (subclassChoice && !subclassOption) throw choiceError(`Choose a ${subclassChoice.label.toLowerCase()} before continuing.`, "SUBCLASS_REQUIRED");
   if (subclassOption?.companionType && !String(draft.companionName || "").trim()) throw choiceError("Name the companion before continuing.", "COMPANION_NAME_REQUIRED");
 
@@ -133,6 +138,25 @@ export function createLevelUpPreview(character, draft) {
   if (subclassOption && !features.some((feature) => feature.id === `${draft.classId}-${subclassOption.id}`)) {
     features.push({ id: `${draft.classId}-${subclassOption.id}`, name: subclassOption.name, source: `${targetClass.name} ${subclassChoice.level}`, detail: `${subclassChoice.label} selected during guided level-up.` });
   }
+
+  const resultingClassEntry = classLevels.find(
+    (entry) => entry.classId === draft.classId,
+  );
+
+  const localSubclassFeatures = resultingClassEntry?.subclassId
+    ? localSubclassFeaturesForLevel(
+        draft.classId,
+        resultingClassEntry.subclassId,
+        resultingClassEntry.level,
+        activePacks,
+      )
+    : [];
+
+  localSubclassFeatures.forEach((feature) => {
+    if (!features.some((current) => current.id === feature.id)) {
+      features.push(feature);
+    }
+  });
   if (advancement.feature && !features.some((feature) => feature.id === advancement.feature.id)) features.push(advancement.feature);
   classChoiceResult.features.forEach((feature) => {
     if (!features.some((current) => current.id === feature.id)) features.push(feature);
@@ -180,10 +204,10 @@ export function createLevelUpPreview(character, draft) {
   return preview;
 }
 
-export function commitLevelUp(character, draft) {
-  const preview = createLevelUpPreview(character, draft);
+export function commitLevelUp(character, draft, activePacks = []) {
+  const preview = createLevelUpPreview(character, draft, activePacks);
   const now = new Date().toISOString();
-  const subclassOption = findSubclassOption(draft.classId, draft.subclassId);
+  const subclassOption = findSubclassOptionWithContent(draft.classId, draft.subclassId, activePacks);
   let result = { ...character, ...preview, updatedAt: now };
   result.companions = (result.companions || []).map((companion) => {
     const stats = deriveCompanionStats(result, companion);

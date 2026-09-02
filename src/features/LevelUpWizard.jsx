@@ -4,7 +4,11 @@ import { Modal } from "../components/Modal.jsx";
 import { Stepper } from "../components/Stepper.jsx";
 import { ABILITIES, CLASS_RULES, abilityModifier, averageHitDie, totalCharacterLevel } from "../domain/rules.js";
 import { commitLevelUp, createLevelUpPreview } from "../domain/character.js";
-import { abilityScoreChoiceForLevel, findSubclassOption, subclassChoiceForLevel } from "../domain/progression.js";
+import { abilityScoreChoiceForLevel } from "../domain/progression.js";
+import {
+  findSubclassOptionWithContent,
+  subclassChoiceForLevelWithContent,
+} from "../data/contentCatalog.js";
 import { availableFeats, findFeat } from "../domain/feats.js";
 import { choiceOptionsForCharacter, dueResolvableClassChoices, replacementOptionsForChoice } from "../domain/classChoices.js";
 import { multiclassChoices } from "../domain/multiclass.js";
@@ -26,7 +30,7 @@ function slotSummary(slots) {
   return slots.map((count, index) => `${count} × ${ordinals[index]}`).join(" · ");
 }
 
-export function LevelUpWizard({ character, targetLevel, onClose, onCommit }) {
+export function LevelUpWizard({ character, targetLevel, activePacks = [], onClose, onCommit }) {
   const initialClass = character.classLevels[0].classId;
   const initialAbility = primaryAbility[initialClass] || "constitution";
   const [step, setStep] = useState(0);
@@ -50,8 +54,8 @@ export function LevelUpWizard({ character, targetLevel, onClose, onCommit }) {
   });
   const [error, setError] = useState("");
   const targetRule = CLASS_RULES[draft.classId];
-  const subclassChoice = subclassChoiceForLevel(character, draft.classId);
-  const subclassOption = findSubclassOption(draft.classId, draft.subclassId);
+  const subclassChoice = subclassChoiceForLevelWithContent(character, draft.classId, activePacks);
+  const subclassOption = findSubclassOptionWithContent(draft.classId, draft.subclassId, activePacks);
   const abilityChoice = abilityScoreChoiceForLevel(character, draft.classId);
   const dueClassChoices = dueResolvableClassChoices(character, draft.classId, draft.classChoiceSelections);
   const dueMulticlassChoices = multiclassChoices(character, draft.classId);
@@ -60,9 +64,9 @@ export function LevelUpWizard({ character, targetLevel, onClose, onCommit }) {
   const selectedFeat = findFeat(draft.featId);
   const inspectedFeat = findFeat(inspectedFeatId) || selectedFeat;
   const preview = useMemo(() => {
-    try { return createLevelUpPreview(character, draft); }
+    try { return createLevelUpPreview(character, draft, activePacks); }
     catch (previewError) { return { error: previewError }; }
-  }, [character, draft]);
+  }, [character, draft, activePacks]);
   const currentLevel = totalCharacterLevel(character.classLevels);
 
   function chooseClass(classId) {
@@ -118,7 +122,7 @@ export function LevelUpWizard({ character, targetLevel, onClose, onCommit }) {
   }
 
   function commit() {
-    try { onCommit(commitLevelUp(character, draft)); onClose({ committed: true }); }
+    try { onCommit(commitLevelUp(character, draft, activePacks)); onClose({ committed: true }); }
     catch (commitError) { setError(commitError.message); }
   }
 
