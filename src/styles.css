@@ -2147,3 +2147,75 @@ select option { background: #10201d; }
     flex-direction: column;
   }
 }
+/* J4 ABILITY SCORE PROVENANCE */
+
+.ability-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.55rem;
+}
+
+.ability-section-heading .section-kicker {
+  margin: 0;
+}
+
+.ability-generation-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-height: 1.7rem;
+  padding: 0.24rem 0.55rem;
+  border: 1px solid rgba(194, 157, 87, 0.25);
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(194, 157, 87, 0.085),
+      rgba(194, 157, 87, 0.035)
+    );
+  white-space: nowrap;
+}
+
+.ability-generation-chip small {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  opacity: 0.46;
+}
+
+.ability-generation-chip strong {
+  font-size: 0.69rem;
+  letter-spacing: 0.025em;
+  font-weight: 700;
+}
+
+.ability-generation-chip.point-buy {
+  border-color: rgba(194, 157, 87, 0.32);
+}
+
+.ability-generation-chip.imported {
+  border-color: rgba(126, 163, 158, 0.3);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(126, 163, 158, 0.08),
+      rgba(126, 163, 158, 0.025)
+    );
+}
+
+.ability-generation-chip.legacy {
+  border-color: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.018);
+  opacity: 0.68;
+}
+
+@media (max-width: 720px) {
+  .ability-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+}

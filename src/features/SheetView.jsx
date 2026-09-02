@@ -15,6 +15,7 @@ import { RestWizard } from "./RestWizard.jsx";
 import { PlayerAttacksPanel } from "./PlayerAttacksPanel.jsx";
 import { Modal } from "../components/Modal.jsx";
 import { setCurrentHitPoints, setExperience, setHitDieCurrent, setInspiration, setPactSlotCurrent, setResourceCurrent } from "../domain/mutations.js";
+import { normalizeAbilityScoreGeneration } from "../domain/provenance.js";
 
 const abilityMeta = {
   strength: { label: "STR", icon: Sword },
@@ -25,6 +26,86 @@ const abilityMeta = {
   charisma: { label: "CHA", icon: ChatCircle },
 };
 
+const ABILITY_GENERATION_LABELS = {
+  manual: "Manual",
+  "point-buy": "Point Buy",
+  imported: "Imported",
+  legacy: "Legacy",
+};
+
+function abilityGenerationDisplay(character) {
+  const record =
+    normalizeAbilityScoreGeneration(
+      character?.abilityScoreGeneration,
+      character,
+    );
+
+  const method =
+    record?.method
+    && ABILITY_GENERATION_LABELS[record.method]
+      ? record.method
+      : "legacy";
+
+  return {
+    ...record,
+    method,
+    label:
+      record?.label
+      || ABILITY_GENERATION_LABELS[method],
+  };
+}
+
+function abilityScoreLine(scores) {
+  if (
+    !scores
+    || typeof scores !== "object"
+  ) {
+    return "";
+  }
+
+  return Object.entries(abilityMeta)
+    .map(([key, meta]) =>
+      scores[key] == null
+        ? null
+        : `${meta.label} ${scores[key]}`
+    )
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function abilityGenerationTitle(record) {
+  const base =
+    abilityScoreLine(
+      record?.baseScores,
+    );
+
+  const final =
+    abilityScoreLine(
+      record?.finalScores,
+    );
+
+  if (
+    base
+    && final
+    && base !== final
+  ) {
+    return `${record.label}: base ${base}; final ${final}`;
+  }
+
+  if (final) {
+    return `${record.label}: ${final}`;
+  }
+
+  if (base) {
+    return `${record.label}: ${base}`;
+  }
+
+  if (record.method === "legacy") {
+    return "Legacy character: ability score generation method was not recorded.";
+  }
+
+  return `Ability scores generated using ${record.label}.`;
+}
 function Counter({ value, min = 0, max = 999, onChange, label }) {
   return (
     <div className="counter" aria-label={label}>
@@ -104,7 +185,8 @@ export function SheetView({ character, updateCharacter, avatar, avatarMap, onLev
   const armorClass = graph.armorClass.value;
   const speed = graph.speed.value;
   const pactSlots = character.pactSlots;
-  const armorRestrictions = graph.restrictions.armor;
+const armorRestrictions = graph.restrictions.armor;
+  const abilityGeneration = abilityGenerationDisplay(character);
 
   const updateResource = (id, value) => updateCharacter(setResourceCurrent(character, id, value));
   const hitDicePools = character.hitDicePools || { [`d${CLASS_RULES[primaryClass]?.hitDie || 8}`]: { current: character.hitDiceRemaining, max: level } };
@@ -145,7 +227,19 @@ export function SheetView({ character, updateCharacter, avatar, avatarMap, onLev
 
       <section className="stat-workspace glass-panel material-primary">
         <div className="ability-section">
-          <p className="section-kicker">Ability scores</p>
+<div className="ability-section-heading">
+            <p className="section-kicker">
+              Ability scores
+            </p>
+
+            <span
+              className={`ability-generation-chip ${abilityGeneration.method}`}
+              title={abilityGenerationTitle(abilityGeneration)}
+            >
+              <small>Generated</small>
+              <strong>{abilityGeneration.label}</strong>
+            </span>
+          </div>
           <div className="ability-grid">
             {Object.entries(character.abilities).map(([key, score]) => {
               const Icon = abilityMeta[key].icon;
