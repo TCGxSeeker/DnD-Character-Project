@@ -5,6 +5,7 @@ import { historyChangeGroups } from "../domain/history.js";
 import { NOTE_FIELDS, saveSessionNote, searchCharacterNotes } from "../domain/notes.js";
 import { calculateCharacterGraph } from "../domain/calculationGraph.js";
 import { Modal } from "../components/Modal.jsx";
+import { FeatureEditorView } from "./FeatureEditorView.jsx";
 
 const localDateValue = () => {
   const today = new Date();
@@ -25,13 +26,22 @@ function SharedFeatureSummary({ character }) {
   return <section className="shared-feature-summary glass-panel material-primary" aria-label="Resolved shared feature rules"><header><div><p className="section-kicker">Multiclass resolution</p><h2>Shared feature rules</h2></div><span>Highest or first eligible rule applies</span></header><div>{resolved.map((entry) => <article key={entry.id}><small>{entry.label}</small><strong>{entry.value}</strong><p>{entry.detail}</p>{entry.sources.length > 0 && <span>{entry.sources.join(" · ")}</span>}</article>)}</div></section>;
 }
 
-function FeatureListView({ character }) {
-  const features = getCharacterFeatures(character);
-  return <div className="simple-view"><header className="view-header"><div><p className="eyebrow">Rules and abilities</p><h1>Features</h1><span>{features.length} active features · class, subclass, ancestry, and feats</span></div><Sparkle size={34} /></header><section className="glass-panel material-primary prose-list">{features.length ? features.map((feature) => <article key={feature.id}><span>{feature.source}</span><h2>{feature.name}</h2><p>{feature.detail}</p>{feature.benefits?.length > 0 && <details className="rules-details"><summary>Complete mechanics</summary><ul>{feature.benefits.map((benefit) => <li key={benefit}>{benefit}</li>)}</ul></details>}</article>) : <div className="empty-state"><Sparkle size={32} /><h2>No features recorded</h2><p>Features earned during guided level-ups will appear here.</p></div>}</section></div>;
-}
+export function FeaturesView({
+  character,
+  updateCharacter,
+}) {
+  return (
+    <div className="features-view-stack">
+      <FeatureEditorView
+        character={character}
+        updateCharacter={updateCharacter}
+      />
 
-export function FeaturesView({ character }) {
-  return <div className="features-view-stack"><FeatureListView character={character} /><SharedFeatureSummary character={character} /></div>;
+      <SharedFeatureSummary
+        character={character}
+      />
+    </div>
+  );
 }
 
 export function NotesView({ character, updateCharacter }) {

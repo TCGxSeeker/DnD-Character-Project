@@ -152,7 +152,7 @@ export function App() {
     const common = { character: activeCharacter, updateCharacter: updateActive };
     if (activeTab === "spells") return <SpellsView {...common} />;
     if (activeTab === "inventory") return <InventoryView {...common} />;
-    if (activeTab === "features") return <FeaturesView character={activeCharacter} />;
+    if (activeTab === "features") return <FeaturesView {...common} />;
     if (activeTab === "notes") return <NotesView {...common} />;
     if (activeTab === "history") return <HistoryView character={activeCharacter} />;
     return <SheetView {...common} avatar={resolveCharacterPortrait(activeCharacter, avatarMap, vaelithra)} avatarMap={avatarMap} onLevelUp={() => setLevelUpOpen(true)} />;
