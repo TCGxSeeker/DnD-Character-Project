@@ -93,6 +93,72 @@ function inferredKind(item) {
   return "item";
 }
 
+function compactItemMechanics(item) {
+  const weapon =
+    weaponProfile(item);
+
+  if (weapon) {
+    return `${weapon.damageDice || ""} ${weapon.damageType || ""}`.trim();
+  }
+
+  const equipment =
+    item?.equipment;
+
+  if (equipment?.kind === "armor") {
+    const parts = [];
+
+    const acBase =
+      Number(equipment.acBase);
+
+    const acBonus =
+      Number(equipment.acBonus || 0);
+
+    if (Number.isFinite(acBase)) {
+      parts.push(
+        `AC ${acBase}${acBonus ? `${acBonus >= 0 ? "+" : ""}${acBonus}` : ""}`,
+      );
+    }
+
+    if (equipment.category) {
+      parts.push(
+        `${String(equipment.category).charAt(0).toUpperCase()}${String(equipment.category).slice(1)}`,
+      );
+    }
+
+    if (equipment.strengthRequirement) {
+      parts.push(
+        `STR ${equipment.strengthRequirement}`,
+      );
+    }
+
+    if (equipment.stealthDisadvantage) {
+      parts.push(
+        "Stealth disadvantage",
+      );
+    }
+
+    return parts.join(" · ");
+  }
+
+  if (equipment?.kind === "shield") {
+    const bonus =
+      Number(
+        equipment.acBonus ?? 2,
+      );
+
+    return Number.isFinite(bonus)
+      ? `AC ${bonus >= 0 ? "+" : ""}${bonus}`
+      : "Shield";
+  }
+
+  if (equipment?.kind === "ammunition") {
+    return equipment.ammunitionType
+      ? String(equipment.ammunitionType)
+      : item.detail || "";
+  }
+
+  return item.detail || "";
+}
 function draftForItem(item) {
   const kind = inferredKind(item);
   const weapon = kind === "weapon" ? weaponProfile(item) : null;
@@ -141,6 +207,35 @@ function draftForItem(item) {
   };
 }
 
+function newCustomItemDraft() {
+  return {
+    id: "custom-item-draft",
+    name: "New Custom Item",
+    quantity: 1,
+    detail: "",
+    weight: 0,
+    equipped: false,
+    attuned: false,
+
+    attackAbility: "auto",
+    proficiencyOverride: "auto",
+    attackBonus: 0,
+    damageBonus: 0,
+    magicBonus: 0,
+    secondaryDamage: [],
+
+    equipment: {
+      kind: "item",
+    },
+
+    provenance: {
+      type: "custom",
+      source: "Custom",
+      reviewStatus: "reviewed",
+      reviewed: true,
+    },
+  };
+}
 function provenanceFor(item) {
   return item?.provenance || {
     type: "legacy",
@@ -155,6 +250,8 @@ function InventoryEditor({
   item,
   commit,
   onClose,
+  mode = "edit",
+  onCreate,
 }) {
   const [draft, setDraft] = useState(() => draftForItem(item));
   const [saveError, setSaveError] = useState("");
@@ -273,26 +370,38 @@ function InventoryEditor({
   function save() {
     setSaveError("");
 
+    const patch = {
+      name: draft.name,
+      quantity: draft.quantity,
+      detail: draft.detail,
+      weight: draft.weight,
+      attackAbility: draft.attackAbility,
+      proficiencyOverride: draft.proficiencyOverride,
+      attackBonus: draft.attackBonus,
+      damageBonus: draft.damageBonus,
+      magicBonus: draft.magicBonus,
+      secondaryDamage: draft.secondaryDamage,
+      equipment: equipmentPatch(),
+    };
+
     const saved = commit(() =>
-      updateEquipmentItem(character, item.id, {
-        name: draft.name,
-        quantity: draft.quantity,
-        detail: draft.detail,
-        weight: draft.weight,
-        attackAbility: draft.attackAbility,
-        proficiencyOverride: draft.proficiencyOverride,
-        attackBonus: draft.attackBonus,
-        damageBonus: draft.damageBonus,
-        magicBonus: draft.magicBonus,
-        secondaryDamage: draft.secondaryDamage,
-        equipment: equipmentPatch(),
-      })
+      mode === "create"
+        ? onCreate(patch)
+        : updateEquipmentItem(
+            character,
+            item.id,
+            patch
+          )
     );
 
     if (saved) {
       onClose();
     } else {
-      setSaveError("The item could not be saved. Check the highlighted mechanics.");
+      setSaveError(
+        mode === "create"
+          ? "The custom item could not be created. Check the highlighted mechanics."
+          : "The item could not be saved. Check the highlighted mechanics."
+      );
     }
   }
 
@@ -300,18 +409,33 @@ function InventoryEditor({
     <div className="inventory-inline-editor">
       <div className="inventory-editor-heading">
         <div>
-          <strong>{item.name}</strong>
-          <small>Character instance</small>
+          <strong>
+            {mode === "create"
+              ? "Create custom item"
+              : item.name}
+          </strong>
+
+          <small>
+            {mode === "create"
+              ? "Native character content"
+              : "Character instance"}
+          </small>
         </div>
 
         <button
           type="button"
           className="inventory-editor-close"
           onClick={onClose}
-          aria-label={`Collapse editor for ${item.name}`}
+          aria-label={
+            mode === "create"
+              ? "Cancel custom item creation"
+              : `Collapse editor for ${item.name}`
+          }
         >
           <CaretUp size={15} />
-          Collapse
+          {mode === "create"
+            ? "Cancel"
+            : "Collapse"}
         </button>
       </div>
 
@@ -673,7 +797,7 @@ function InventoryEditor({
             </label>
           </div>
 
-          <div className="inventory-toggle-grid">
+          <div className="inventory-toggle-grid inventory-themed-toggles">
             <label>
               <input
                 type="checkbox"
@@ -973,9 +1097,7 @@ function InventoryItemRow({
           </div>
 
           <span className="inventory-item-mechanics">
-            {weapon
-              ? `${weapon.damageDice} ${weapon.damageType}`.trim()
-              : item.detail}
+            {compactItemMechanics(item)}
 
             {weight
               ? ` · ${weight} lb.${Number(item.quantity || 0) > 1 ? " each" : ""}`
@@ -1182,11 +1304,37 @@ export function InventoryView({
   const [message, setMessage] = useState("");
   const [inventoryError, setInventoryError] =
     useState("");
+  const [creatingCustomItem, setCreatingCustomItem] =
+    useState(false);
 
   const carrying = carryingSummary(character);
   const attunement = attunementSummary(character);
   const armorRequirements =
     equippedArmorRequirements(character);
+
+  const structuredEquipmentKinds =
+    new Set([
+      "weapon",
+      "armor",
+      "shield",
+      "ammunition",
+    ]);
+
+  const equipmentItems =
+    character.inventory.filter(
+      (item) =>
+        structuredEquipmentKinds.has(
+          inferredKind(item)
+        )
+    );
+
+  const carriedItems =
+    character.inventory.filter(
+      (item) =>
+        !structuredEquipmentKinds.has(
+          inferredKind(item)
+        )
+    );
 
   const itemIds = useMemo(
     () =>
@@ -1258,6 +1406,71 @@ export function InventoryView({
     );
   }
 
+  function createCustomItem(patch) {
+    const id =
+      globalThis.crypto?.randomUUID
+        ? `custom-item-${globalThis.crypto.randomUUID()}`
+        : `custom-item-${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2, 9)}`;
+
+    const baseItem = {
+      id,
+      name: "New Custom Item",
+      quantity: 1,
+      detail: "",
+      weight: 0,
+      equipped: false,
+      attuned: false,
+
+      attackAbility: "auto",
+      proficiencyOverride: "auto",
+      attackBonus: 0,
+      damageBonus: 0,
+      magicBonus: 0,
+      secondaryDamage: [],
+
+      equipment: {
+        kind: "item",
+      },
+
+      provenance: {
+        type: "custom",
+        source: "Custom",
+        reviewStatus: "reviewed",
+        reviewed: true,
+      },
+    };
+
+    const withItem = {
+      ...character,
+      inventory: [
+        ...character.inventory,
+        baseItem,
+      ],
+    };
+
+    const normalized =
+      updateEquipmentItem(
+        withItem,
+        id,
+        patch
+      );
+
+    return appendHistoryEvent(
+      normalized,
+      {
+        type: "item-added",
+        title: `Created ${patch.name.trim() || "custom item"}`,
+        detail: "Custom inventory item created",
+        changes: {
+          itemsAdded: [
+            patch.name.trim() || "Custom item",
+          ],
+        },
+      }
+    );
+  }
   function removeItem(item) {
     const next = {
       ...character,
@@ -1293,11 +1506,44 @@ export function InventoryView({
           </span>
         </div>
 
-        <Backpack size={34} />
+        <div className="inventory-view-actions">
+          <button
+            type="button"
+            className="subtle-action inventory-add-custom"
+            onClick={() =>
+              setCreatingCustomItem(true)
+            }
+            disabled={creatingCustomItem}
+          >
+            <Plus size={16} />
+            Custom item
+          </button>
+
+          <Backpack
+            className="inventory-header-icon"
+            size={34}
+          />
+        </div>
       </header>
 
       <div className="library-layout">
-        <section className="glass-panel material-primary collection-list">
+        <div className="inventory-panel-stack">
+          {creatingCustomItem && (
+            <section className="glass-panel material-primary collection-list inventory-custom-creator-panel">
+              <InventoryEditor
+                character={character}
+                item={newCustomItemDraft()}
+                commit={commit}
+                mode="create"
+                onCreate={createCustomItem}
+                onClose={() =>
+                  setCreatingCustomItem(false)
+                }
+              />
+            </section>
+          )}
+
+          <section className="glass-panel material-primary collection-list">
           <div className="section-heading inventory-summary">
             <div>
               <h2>Equipment</h2>
@@ -1391,19 +1637,72 @@ export function InventoryView({
           )}
 
           <div className="inventory-table">
-            {character.inventory.map(
-              (item) => (
-                <InventoryItemRow
-                  key={item.id}
-                  character={character}
-                  item={item}
-                  commit={commit}
-                  removeItem={removeItem}
-                />
+            {equipmentItems.length ? (
+              equipmentItems.map(
+                (item) => (
+                  <InventoryItemRow
+                    key={item.id}
+                    character={character}
+                    item={item}
+                    commit={commit}
+                    removeItem={removeItem}
+                  />
+                )
               )
+            ) : (
+              <div className="inventory-empty-group">
+                No weapons, armor, shields, or ammunition.
+              </div>
             )}
           </div>
         </section>
+
+
+        <section className="glass-panel material-primary collection-list carried-items-panel">
+          <div className="section-heading inventory-summary">
+            <div>
+              <p className="section-kicker">
+                Packs · tools · valuables · miscellaneous
+              </p>
+
+              <h2>Carried Items</h2>
+
+              <span>
+                {carriedItems.length} ordinary{" "}
+                {carriedItems.length === 1
+                  ? "item"
+                  : "items"}
+              </span>
+
+              <small>
+                General inventory that does not participate
+                directly in weapon, armor, shield, or
+                ammunition mechanics.
+              </small>
+            </div>
+          </div>
+
+          <div className="inventory-table">
+            {carriedItems.length ? (
+              carriedItems.map(
+                (item) => (
+                  <InventoryItemRow
+                    key={item.id}
+                    character={character}
+                    item={item}
+                    commit={commit}
+                    removeItem={removeItem}
+                  />
+                )
+              )
+            ) : (
+              <div className="inventory-empty-group">
+                No general carried items.
+              </div>
+            )}
+          </div>
+        </section>
+        </div>
 
         <aside className="glass-panel material-primary reference-panel">
           <p className="section-kicker">

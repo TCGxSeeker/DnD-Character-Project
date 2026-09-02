@@ -2219,3 +2219,325 @@ select option { background: #10201d; }
     gap: 0.4rem;
   }
 }
+/* INVENTORY EQUIPMENT / CARRIED ITEMS SPLIT */
+
+.inventory-panel-stack {
+  display: grid;
+  gap: 1.15rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.inventory-panel-stack > .collection-list {
+  min-width: 0;
+}
+
+.carried-items-panel .inventory-summary {
+  align-items: flex-start;
+}
+
+.carried-items-panel .section-kicker {
+  margin-bottom: 0.3rem;
+}
+
+.inventory-empty-group {
+  padding: 1.15rem 0.5rem;
+  color: var(--text-muted, rgba(235, 240, 235, 0.55));
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .inventory-panel-stack {
+    gap: 0.9rem;
+  }
+}
+/* NATIVE CUSTOM INVENTORY CREATOR */
+
+.inventory-view-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.inventory-add-custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.35rem;
+  padding-inline: 0.9rem;
+}
+
+.inventory-custom-creator-panel {
+  overflow: hidden;
+}
+
+.inventory-custom-creator-panel
+.inventory-inline-editor {
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+@media (max-width: 700px) {
+  .inventory-view-actions {
+    align-items: flex-end;
+    flex-direction: column-reverse;
+  }
+}
+/* INVENTORY CUSTOM UI POLISH */
+
+/* Header actions */
+.inventory-view-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  flex-wrap: nowrap;
+}
+
+.inventory-header-icon {
+  flex: 0 0 auto;
+  color: var(--gold);
+  filter: drop-shadow(0 0 0.45rem color-mix(in srgb, var(--gold) 18%, transparent));
+}
+
+.inventory-add-custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+
+  min-height: 2.35rem;
+  padding: 0.55rem 0.85rem;
+
+  border: 1px solid color-mix(in srgb, var(--gold) 48%, transparent);
+  border-radius: 0.75rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--gold) 8%, transparent),
+      color-mix(in srgb, var(--gold) 2.5%, transparent)
+    ),
+    rgba(7, 21, 20, 0.78);
+
+  color: var(--gold-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
+
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.inventory-add-custom svg {
+  color: currentColor;
+}
+
+.inventory-add-custom:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--gold) 78%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--gold) 14%, transparent),
+      color-mix(in srgb, var(--gold) 5%, transparent)
+    ),
+    rgba(7, 21, 20, 0.9);
+  transform: translateY(-1px);
+}
+
+.inventory-add-custom:disabled {
+  opacity: 0.48;
+  cursor: default;
+  transform: none;
+}
+
+
+/* Compact top-row quantity control */
+.inventory-quantity-field {
+  display: inline-grid;
+  grid-template-columns: auto minmax(3.2rem, 4.1rem);
+  align-items: center;
+  gap: 0.45rem;
+
+  color: var(--muted);
+
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.inventory-quantity-field input {
+  width: 100%;
+  min-width: 0;
+  height: 2.35rem;
+  padding: 0 0.65rem;
+
+  border: 1px solid rgba(130, 163, 157, 0.2);
+  border-radius: 0.65rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.018),
+      rgba(255, 255, 255, 0)
+    ),
+    rgba(4, 18, 17, 0.82);
+
+  color: var(--ink);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.inventory-quantity-field input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--gold) 58%, transparent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--gold) 8%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+
+/* Observatory-themed checkbox treatment */
+.inventory-themed-toggles {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.inventory-themed-toggles > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  color: var(--muted);
+
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+}
+
+.inventory-themed-toggles input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 1.2rem;
+  height: 1.2rem;
+  margin: 0;
+
+  display: grid;
+  place-content: center;
+
+  border: 1px solid color-mix(in srgb, var(--gold) 38%, transparent);
+  border-radius: 0.3rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.025),
+      rgba(255, 255, 255, 0)
+    ),
+    rgba(5, 20, 19, 0.92);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+  cursor: pointer;
+
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.inventory-themed-toggles input[type="checkbox"]::before {
+  content: "";
+
+  width: 0.56rem;
+  height: 0.32rem;
+
+  border-left: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+
+  transform:
+    translateY(-0.05rem)
+    rotate(-45deg)
+    scale(0);
+
+  transform-origin: center;
+
+  transition: transform 100ms ease;
+}
+
+.inventory-themed-toggles input[type="checkbox"]:checked {
+  border-color: color-mix(in srgb, var(--gold) 82%, transparent);
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--gold) 26%, transparent),
+      color-mix(in srgb, var(--gold) 12%, transparent)
+    ),
+    rgba(31, 38, 21, 0.92);
+
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--gold) 7%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.inventory-themed-toggles input[type="checkbox"]:checked::before {
+  border-left-color: var(--gold);
+  border-bottom-color: var(--gold);
+
+  transform:
+    translateY(-0.05rem)
+    rotate(-45deg)
+    scale(1);
+}
+
+.inventory-themed-toggles input[type="checkbox"]:hover {
+  border-color: color-mix(in srgb, var(--gold) 70%, transparent);
+}
+
+.inventory-themed-toggles input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--gold) 13%, transparent);
+}
+
+
+/* Keep header controls inline unless the viewport is genuinely narrow */
+@media (max-width: 620px) {
+  .inventory-view-actions {
+    gap: 0.55rem;
+  }
+
+  .inventory-add-custom {
+    min-height: 2.15rem;
+    padding-inline: 0.7rem;
+  }
+}
+
+@media (max-width: 460px) {
+  .inventory-view-actions {
+    flex-wrap: wrap;
+  }
+}

@@ -33,6 +33,757 @@ const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, n
 const slug = (value) => text(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const titleCase = (value) => text(value).toLowerCase().replace(/(^|[_\s-])([a-z])/g, (_, space, letter) => `${space ? " " : ""}${letter.toUpperCase()}`);
 
+function firstDefined(...values) {
+  return values.find(
+    (value) =>
+      value !== undefined
+      && value !== null
+      && value !== "",
+  );
+}
+
+function booleanOrUndefined(...values) {
+  const value =
+    firstDefined(...values);
+
+  if (
+    value === undefined
+    || value === null
+    || value === ""
+  ) {
+    return undefined;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  const normalized =
+    text(value).toLowerCase();
+
+  if (
+    ["true", "yes", "1"].includes(normalized)
+  ) {
+    return true;
+  }
+
+  if (
+    ["false", "no", "0"].includes(normalized)
+  ) {
+    return false;
+  }
+
+  return undefined;
+}
+
+function optionalNumber(...values) {
+  const value =
+    firstDefined(...values);
+
+  if (
+    value === undefined
+    || value === null
+    || value === ""
+  ) {
+    return null;
+  }
+
+  const parsed =
+    Number(value);
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
+}
+
+function normalizedAbilityName(value) {
+  const normalized =
+    text(value)
+      .toLowerCase()
+      .replace(/[^a-z]/g, "");
+
+  const aliases = {
+    str: "strength",
+    strength: "strength",
+
+    dex: "dexterity",
+    dexterity: "dexterity",
+
+    con: "constitution",
+    constitution: "constitution",
+
+    int: "intelligence",
+    intelligence: "intelligence",
+
+    wis: "wisdom",
+    wisdom: "wisdom",
+
+    cha: "charisma",
+    charisma: "charisma",
+  };
+
+  return aliases[normalized] || "";
+}
+
+function normalizedDamageType(value) {
+  const source =
+    typeof value === "object"
+      ? firstDefined(
+          value?.name,
+          value?.typeName,
+          value?.damageType,
+          value?.id,
+        )
+      : value;
+
+  return titleCase(source);
+}
+
+function diceExpression(value) {
+  if (
+    value == null
+    || value === ""
+  ) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    const match =
+      value.match(
+        /(\d+)\s*d\s*(\d+)/i,
+      );
+
+    return match
+      ? `${match[1]}d${match[2]}`
+      : text(value);
+  }
+
+  if (
+    typeof value !== "object"
+    || Array.isArray(value)
+  ) {
+    return "";
+  }
+
+  const explicit =
+    firstDefined(
+      value.dice,
+      value.damageDice,
+      value.die,
+      value.expression,
+      value.notation,
+    );
+
+  if (explicit) {
+    return diceExpression(explicit);
+  }
+
+  const count =
+    optionalNumber(
+      value.count,
+      value.amount,
+      value.diceAmount,
+      value.damageDiceAmount,
+      value.numberOfDice,
+    );
+
+  const namedDie =
+    text(
+      firstDefined(
+        value.damageDiceName,
+        value.dieName,
+      ),
+    );
+
+  const namedDieMatch =
+    namedDie.match(
+      /^d?(\d+)$/i,
+    );
+
+  const sides =
+    optionalNumber(
+      value.sides,
+      value.diceSides,
+      value.dieSize,
+      value.diceType,
+      namedDieMatch?.[1],
+    );
+
+  if (
+    count != null
+    && sides != null
+  ) {
+    return `${Math.trunc(count)}d${Math.trunc(sides)}`;
+  }
+
+  return "";
+}
+
+function propertyNames(...values) {
+  const entries =
+    values.flatMap(
+      (value) => {
+        if (Array.isArray(value)) {
+          return value;
+        }
+
+        if (
+          typeof value === "string"
+          && value.trim()
+        ) {
+          return value
+            .split(/[,;|]+/)
+            .map(
+              (entry) =>
+                entry.trim(),
+            )
+            .filter(Boolean);
+        }
+
+        return value
+          ? [value]
+          : [];
+      },
+    );
+
+  return [
+    ...new Set(
+      entries
+        .map(
+          (entry) =>
+            typeof entry === "object"
+              ? text(
+                  firstDefined(
+                    entry.name,
+                    entry.id,
+                    entry.typeName,
+                    entry.property,
+                  ),
+                )
+              : text(entry),
+        )
+        .filter(Boolean)
+        .map(
+          (entry) =>
+            entry
+              .toLowerCase()
+              .replace(/[_\s]+/g, "-"),
+        ),
+    ),
+  ];
+}
+
+function safeStructuredSnapshot(
+  value,
+  warnings,
+  label,
+  maximumLength = 250000,
+) {
+  if (
+    !value
+    || typeof value !== "object"
+  ) {
+    return null;
+  }
+
+  try {
+    const serialized =
+      JSON.stringify(value);
+
+    if (
+      serialized.length > maximumLength
+    ) {
+      warnings?.push(
+        `${label} was too large to preserve as an editable import snapshot.`,
+      );
+
+      return {
+        truncated: true,
+        keys:
+          Object.keys(value).sort(),
+      };
+    }
+
+    return JSON.parse(serialized);
+  } catch {
+    warnings?.push(
+      `${label} could not be preserved as a structured snapshot.`,
+    );
+
+    return {
+      keys:
+        Object.keys(record(value)).sort(),
+    };
+  }
+}
+
+function rangeProfile(source, model) {
+  const range =
+    firstDefined(
+      model?.range,
+      source?.range,
+    );
+
+  if (
+    range
+    && typeof range === "object"
+  ) {
+    const normal =
+      optionalNumber(
+        range.normal,
+        range.minimum,
+        range.short,
+        range.first,
+      );
+
+    const long =
+      optionalNumber(
+        range.long,
+        range.maximum,
+        range.second,
+      );
+
+    if (
+      normal != null
+      || long != null
+    ) {
+      return {
+        normal:
+          normal ?? 0,
+        long:
+          long ?? normal ?? 0,
+        unit:
+          text(range.unit)
+          || "feet",
+      };
+    }
+  }
+
+  const normal =
+    optionalNumber(
+      model?.rangeNormal,
+      model?.normalRange,
+      source?.rangeNormal,
+      source?.normalRange,
+    );
+
+  const long =
+    optionalNumber(
+      model?.rangeLong,
+      model?.longRange,
+      source?.rangeLong,
+      source?.longRange,
+    );
+
+  if (
+    normal == null
+    && long == null
+  ) {
+    return null;
+  }
+
+  return {
+    normal:
+      normal ?? 0,
+    long:
+      long ?? normal ?? 0,
+    unit: "feet",
+  };
+}
+
+function damagePacketFrom(value) {
+  if (
+    !value
+    || typeof value !== "object"
+  ) {
+    return null;
+  }
+
+  const dice =
+    diceExpression(
+      firstDefined(
+        value.dice,
+        value.damageDice,
+        value.damage,
+        value.damageModel,
+        value,
+      ),
+    );
+
+  const type =
+    normalizedDamageType(
+      firstDefined(
+        value.damageType,
+        value.type,
+        value.typeName,
+        value.damageTypeName,
+      ),
+    );
+
+  const bonus =
+    optionalNumber(
+      value.bonus,
+      value.damageBonus,
+      value.extraBonus,
+    ) ?? 0;
+
+  if (
+    !dice
+    && !type
+    && bonus === 0
+  ) {
+    return null;
+  }
+
+  return {
+    dice,
+    type,
+    bonus,
+  };
+}
+
+function secondaryDamagePackets(
+  source,
+  model,
+) {
+  const candidates = [
+    ...list(source?.extraDamage),
+    ...list(source?.extraDamages),
+    ...list(source?.extraDamageDice),
+    ...list(source?.additionalDamage),
+    ...list(source?.additionalDamages),
+    ...list(source?.bonusDamage),
+    ...list(source?.bonusDamages),
+
+    ...list(model?.extraDamage),
+    ...list(model?.extraDamages),
+    ...list(model?.extraDamageDice),
+    ...list(model?.additionalDamage),
+    ...list(model?.additionalDamages),
+    ...list(model?.bonusDamage),
+    ...list(model?.bonusDamages),
+  ];
+
+  const packets =
+    candidates
+      .map(damagePacketFrom)
+      .filter(Boolean);
+
+  const seen =
+    new Set();
+
+  return packets.filter(
+    (packet) => {
+      const key =
+        [
+          packet.dice || "",
+          packet.type || "",
+          Number(packet.bonus || 0),
+        ].join("|");
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+
+      return true;
+    },
+  );
+}
+
+function armorCategory(value) {
+  const normalized =
+    text(
+      typeof value === "object"
+        ? firstDefined(
+            value.name,
+            value.id,
+            value.typeName,
+          )
+        : value,
+    ).toLowerCase();
+
+  if (normalized.includes("heavy")) {
+    return "heavy";
+  }
+
+  if (normalized.includes("medium")) {
+    return "medium";
+  }
+
+  if (normalized.includes("light")) {
+    return "light";
+  }
+
+  return "";
+}
+
+function weaponCategory(model, source) {
+  const explicitSimple =
+    booleanOrUndefined(
+      source?.isSimple,
+      model?.isSimple,
+      source?.simple,
+      model?.simple,
+    );
+
+  const explicitMartial =
+    booleanOrUndefined(
+      source?.isMartial,
+      model?.isMartial,
+      source?.martial,
+      model?.martial,
+    );
+
+  if (
+    explicitSimple === true
+  ) {
+    return {
+      isSimple: true,
+      isMartial: false,
+    };
+  }
+
+  if (
+    explicitMartial === true
+  ) {
+    return {
+      isSimple: false,
+      isMartial: true,
+    };
+  }
+
+  const category =
+    text(
+      firstDefined(
+        model?.category,
+        source?.category,
+        model?.weaponCategory,
+        source?.weaponCategory,
+        model?.type,
+        source?.type,
+      ),
+    ).toLowerCase();
+
+  return {
+    isSimple:
+      category.includes("simple"),
+
+    isMartial:
+      category.includes("martial"),
+  };
+}
+
+function attackType(model, source) {
+  const explicit =
+    text(
+      firstDefined(
+        source?.attackType,
+        model?.attackType,
+        source?.rangeType,
+        model?.rangeType,
+      ),
+    ).toLowerCase();
+
+  if (
+    explicit.includes("range")
+  ) {
+    return "ranged";
+  }
+
+  if (
+    explicit.includes("melee")
+  ) {
+    return "melee";
+  }
+
+  if (
+    booleanOrUndefined(
+      source?.isRanged,
+      model?.isRanged,
+    ) === true
+  ) {
+    return "ranged";
+  }
+
+  return "melee";
+}
+
+function explicitAbilityModifiers(value) {
+  const result = {};
+
+  const visit =
+    (candidate, depth = 0) => {
+      if (
+        !candidate
+        || typeof candidate !== "object"
+        || depth > 4
+      ) {
+        return;
+      }
+
+      if (Array.isArray(candidate)) {
+        candidate.forEach(
+          (entry) =>
+            visit(
+              entry,
+              depth + 1,
+            ),
+        );
+
+        return;
+      }
+
+      const ability =
+        normalizedAbilityName(
+          firstDefined(
+            candidate.ability,
+            candidate.abilityName,
+            candidate.typeName,
+            candidate.name,
+            candidate.id,
+          ),
+        );
+
+      const amount =
+        optionalNumber(
+          candidate.amount,
+          candidate.value,
+          candidate.modifier,
+          candidate.bonus,
+          candidate.increase,
+        );
+
+      if (
+        ability
+        && amount != null
+        && amount !== 0
+      ) {
+        result[ability] =
+          (result[ability] || 0)
+          + amount;
+      }
+
+      for (
+        const [key, nested]
+        of Object.entries(candidate)
+      ) {
+        if (
+          /ability|score|modifier|increase/i.test(key)
+        ) {
+          visit(
+            nested,
+            depth + 1,
+          );
+        }
+      }
+    };
+
+  visit(value);
+
+  return result;
+}
+
+function objectCandidates(value, depth = 0) {
+  if (
+    !value
+    || typeof value !== "object"
+    || depth > 5
+  ) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(
+      (entry) =>
+        objectCandidates(
+          entry,
+          depth + 1,
+        ),
+    );
+  }
+
+  return [
+    value,
+    ...Object.values(value)
+      .flatMap(
+        (entry) =>
+          objectCandidates(
+            entry,
+            depth + 1,
+          ),
+      ),
+  ];
+}
+
+function featureRichness(value, level) {
+  if (
+    !value
+    || typeof value !== "object"
+  ) {
+    return 0;
+  }
+
+  const detail =
+    featureDetail(
+      value,
+      level,
+    );
+
+  return (
+    detail.length
+    + list(value.descriptionModels).length * 100
+    + Object.keys(value).length
+  );
+}
+
+function resolveRichFeature(
+  selected,
+  container,
+  level,
+) {
+  const selectedId =
+    text(selected?.id).toLowerCase();
+
+  const selectedName =
+    text(selected?.name).toLowerCase();
+
+  const matches =
+    objectCandidates(container)
+      .filter(
+        (candidate) => {
+          if (candidate === selected) {
+            return true;
+          }
+
+          const candidateId =
+            text(candidate?.id).toLowerCase();
+
+          const candidateName =
+            text(candidate?.name).toLowerCase();
+
+          return Boolean(
+            (
+              selectedId
+              && candidateId === selectedId
+            )
+            || (
+              selectedName
+              && candidateName === selectedName
+            ),
+          );
+        },
+      )
+      .sort(
+        (a, b) =>
+          featureRichness(b, level)
+          - featureRichness(a, level),
+      );
+
+  return matches[0]
+    || selected;
+}
 function parseEmbedded(value, label, warnings) {
   if (value && typeof value === "object") return value;
   if (!text(value)) return null;
@@ -89,22 +840,174 @@ function mapClassLevels(raw, warnings) {
 }
 
 function mapAncestry(raw, warnings) {
-  const selected = record(raw.race);
-  const embedded = parseEmbedded(raw.requiredRace, "Embedded ancestry record", warnings);
-  const ancestry = ANCESTRIES.find((candidate) => candidate.id === text(selected.raceId).toLowerCase())
-    || ANCESTRIES.find((candidate) => candidate.name.toLowerCase() === text(embedded?.name).toLowerCase());
+  const selected =
+    record(raw.race);
+
+  const embedded =
+    parseEmbedded(
+      raw.requiredRace,
+      "Embedded ancestry record",
+      warnings,
+    );
+
+  const sourceOptionId =
+    text(
+      selected.subraceId,
+    ).toLowerCase();
+
+  const sourceOption =
+    list(embedded?.subraces)
+      .find(
+        (candidate) =>
+          text(candidate?.id)
+            .toLowerCase()
+          === sourceOptionId,
+      );
+
+  const ancestry =
+    ANCESTRIES.find(
+      (candidate) =>
+        candidate.id
+        === text(selected.raceId)
+          .toLowerCase(),
+    )
+    || ANCESTRIES.find(
+      (candidate) =>
+        candidate.name.toLowerCase()
+        === text(embedded?.name)
+          .toLowerCase(),
+    );
+
+  const preservedName =
+    text(sourceOption?.name)
+    || text(embedded?.name)
+    || titleCase(selected.raceId)
+    || "Imported ancestry";
+
+  /*
+   * CAH ability scores are imported as final values.
+   * These modifiers are provenance/reference only and MUST
+   * never be applied to the imported scores a second time.
+   */
+  const ancestrySnapshot = {
+    sourceRaceId:
+      text(
+        selected.raceId
+        || embedded?.id,
+      ),
+
+    sourceSubraceId:
+      text(
+        selected.subraceId,
+      ),
+
+    name:
+      text(embedded?.name)
+      || preservedName,
+
+    optionName:
+      text(sourceOption?.name),
+
+    explicitAbilityModifiers:
+      explicitAbilityModifiers([
+        embedded,
+        sourceOption,
+      ]),
+
+    finalScoresAlreadyIncludeModifiers:
+      true,
+
+    sourceModel:
+      safeStructuredSnapshot(
+        embedded,
+        warnings,
+        `${preservedName} ancestry model`,
+      ),
+
+    sourceOptionModel:
+      safeStructuredSnapshot(
+        sourceOption,
+        warnings,
+        `${preservedName} ancestry option`,
+      ),
+  };
+
   if (!ancestry) {
-    const preserved = text(embedded?.name) || titleCase(selected.raceId) || "Imported ancestry";
-    warnings.push(`${preserved} is not in the ancestry catalog. Its name was preserved without automatic ancestry mechanics.`);
-    return { ancestry: preserved, ancestryId: "custom-lineage", ancestryOptionId: "medium" };
+    warnings.push(
+      `${preservedName} is not in the ancestry catalog. Its name and explicit source data were preserved without automatically reapplying ancestry mechanics.`,
+    );
+
+    return {
+      ancestry:
+        preservedName,
+
+      ancestryId:
+        "custom-lineage",
+
+      ancestryOptionId:
+        "medium",
+
+      importedAncestry:
+        ancestrySnapshot,
+    };
   }
-  const sourceOptionId = text(selected.subraceId).toLowerCase();
-  const sourceOption = list(embedded?.subraces).find((candidate) => text(candidate?.id).toLowerCase() === sourceOptionId);
-  const alias = ancestryAliases[sourceOptionId] || sourceOptionId.replace(new RegExp(`^${ancestry.id}_?`), "").replace(/_/g, "-");
-  const option = ancestry.options.find((candidate) => candidate.id === alias)
-    || ancestry.options.find((candidate) => candidate.name.toLowerCase() === text(sourceOption?.name).replace(/^palid\b/i, "Pallid").toLowerCase());
-  if (sourceOptionId && !option) warnings.push(`${text(sourceOption?.name) || sourceOptionId} was not matched to a built-in ancestry option; the base ${ancestry.name} mechanics will apply.`);
-  return { ancestry: ancestryDisplayName(ancestry.id, option?.id), ancestryId: ancestry.id, ...(option ? { ancestryOptionId: option.id } : {}) };
+
+  const alias =
+    ancestryAliases[sourceOptionId]
+    || sourceOptionId
+      .replace(
+        new RegExp(
+          `^${ancestry.id}_?`,
+        ),
+        "",
+      )
+      .replace(/_/g, "-");
+
+  const option =
+    ancestry.options.find(
+      (candidate) =>
+        candidate.id === alias,
+    )
+    || ancestry.options.find(
+      (candidate) =>
+        candidate.name.toLowerCase()
+        === text(sourceOption?.name)
+          .replace(
+            /^palid\b/i,
+            "Pallid",
+          )
+          .toLowerCase(),
+    );
+
+  if (
+    sourceOptionId
+    && !option
+  ) {
+    warnings.push(
+      `${text(sourceOption?.name) || sourceOptionId} was not matched to a built-in ancestry option. The imported source ancestry data was preserved for review.`,
+    );
+  }
+
+  return {
+    ancestry:
+      ancestryDisplayName(
+        ancestry.id,
+        option?.id,
+      ),
+
+    ancestryId:
+      ancestry.id,
+
+    ...(option
+      ? {
+          ancestryOptionId:
+            option.id,
+        }
+      : {}),
+
+    importedAncestry:
+      ancestrySnapshot,
+  };
 }
 
 function mapBackground(raw, warnings) {
@@ -170,52 +1073,694 @@ function mapSpellSlots(raw, classLevels) {
 }
 
 function mapSpells(raw, classLevels) {
-  const owner = classLevels.filter((entry) => CLASS_RULES[entry.classId]?.caster !== "none");
-  const sourceClassId = owner.length === 1 ? owner[0].classId : "";
-  return uniqueByName(list(raw.spells).map((source, index) => {
-    const components = text(source?.components);
-    const materialMatch = components.match(/M\s*\((.*)\)/i);
-    return {
-      id: `cah-spell-${slug(source?.name)}-${index}`,
-      canonicalId: slug(source?.name),
-      name: text(source?.name),
-      level: clamp(source?.level, 0, 9),
-      castingTime: text(source?.castingTime) || "—",
-      range: text(source?.range) || "—",
-      duration: text(source?.duration),
-      school: text(source?.school),
-      verbal: /(^|,\s*)V(?:,|$)/i.test(components),
-      somatic: /(^|,\s*)S(?:,|$)/i.test(components),
-      material: /(^|,\s*)M(?:\s*\(|,|$)/i.test(components),
-      materialSpecified: materialMatch?.[1] || "",
-      concentration: /concentration/i.test(text(source?.duration)),
-      ritual: Boolean(source?.isRitual),
-      prepared: Boolean(source?.prepared),
-      desc: text(source?.description),
-      higherLevel: text(source?.higherLevels),
-      source: "Imported from 5e Companion",
-      ...(sourceClassId ? { sourceClassId } : {}),
-      importedCustom: Boolean(source?.isCustom),
-    };
-  }));
+  const owner =
+    classLevels.filter(
+      (entry) =>
+        CLASS_RULES[entry.classId]
+          ?.caster !== "none",
+    );
+
+  const sourceClassId =
+    owner.length === 1
+      ? owner[0].classId
+      : "";
+
+  return uniqueByName(
+    list(raw.spells)
+      .map(
+        (container, index) => {
+          const source =
+            container?.spellModel
+            || container;
+
+          const components =
+            text(source?.components);
+
+          const materialMatch =
+            components.match(
+              /M\s*\((.*)\)/i,
+            );
+
+          const custom =
+            Boolean(
+              source?.isCustom
+              ?? container?.isCustom,
+            );
+
+          return {
+            id:
+              `cah-spell-${slug(source?.id || source?.name)}-${index}`,
+
+            canonicalId:
+              slug(source?.name),
+
+            name:
+              text(source?.name),
+
+            level:
+              clamp(
+                firstDefined(
+                  source?.level,
+                  container?.level,
+                ),
+                0,
+                9,
+              ),
+
+            castingTime:
+              text(source?.castingTime)
+              || "—",
+
+            range:
+              text(source?.range)
+              || "—",
+
+            duration:
+              text(source?.duration),
+
+            school:
+              text(
+                firstDefined(
+                  source?.school,
+                  source?.schoolName,
+                ),
+              ),
+
+            verbal:
+              /(^|,\s*)V(?:,|$)/i
+                .test(components),
+
+            somatic:
+              /(^|,\s*)S(?:,|$)/i
+                .test(components),
+
+            material:
+              /(^|,\s*)M(?:\s*\(|,|$)/i
+                .test(components),
+
+            materialSpecified:
+              materialMatch?.[1]
+              || text(
+                source?.materialSpecified,
+              ),
+
+            concentration:
+              Boolean(
+                source?.concentration
+                ?? /concentration/i.test(
+                  text(source?.duration),
+                ),
+              ),
+
+            ritual:
+              Boolean(
+                source?.isRitual
+                ?? source?.ritual,
+              ),
+
+            prepared:
+              Boolean(
+                container?.prepared
+                ?? source?.prepared,
+              ),
+
+            desc:
+              text(
+                firstDefined(
+                  source?.description,
+                  source?.desc,
+                  source?.notes,
+                ),
+              ),
+
+            higherLevel:
+              text(
+                firstDefined(
+                  source?.higherLevels,
+                  source?.higherLevel,
+                  source?.atHigherLevels,
+                ),
+              ),
+
+            source:
+              "Imported from 5e Companion",
+
+            ...(sourceClassId
+              ? {
+                  sourceClassId,
+                }
+              : {}),
+
+            importedCustom:
+              custom,
+
+            imported:
+              true,
+
+            provenance: {
+              type: "cah-import",
+              source:
+                "5e Companion",
+              reviewStatus:
+                custom
+                  ? "review-required"
+                  : "review-required",
+              reviewed: false,
+            },
+
+            importedSpellSnapshot:
+              safeStructuredSnapshot(
+                {
+                  container,
+                  model: source,
+                },
+                null,
+                `${text(source?.name) || "Spell"} import`,
+                125000,
+              ),
+          };
+        },
+      ),
+  );
 }
 
 function mapInventory(raw) {
-  const sources = [...list(raw.equipment), ...list(raw.weapons), ...list(raw.armors)];
-  return sources.flatMap((source, index) => {
-    const model = source?.weaponModel || source?.armorModel || source;
-    const name = text(model?.name || source?.name);
-    if (!name) return [];
-    return [{
-      id: `cah-item-${slug(source?.id || name)}-${index}`,
-      name,
-      quantity: Math.max(0, Math.trunc(number(source?.amount ?? source?.quantity, 1))),
-      equipped: Boolean(source?.isEquipped ?? source?.equipped),
-      attuned: Boolean(source?.isAttuned ?? source?.attuned),
-      detail: text(source?.description || model?.description || source?.notes),
-      importedFrom: "5e Companion",
-    }];
-  });
+  const sources = [
+    ...list(raw.equipment)
+      .map(
+        (source) => ({
+          source,
+          kindHint: "",
+        }),
+      ),
+
+    ...list(raw.weapons)
+      .map(
+        (source) => ({
+          source,
+          kindHint: "weapon",
+        }),
+      ),
+
+    ...list(raw.armors)
+      .map(
+        (source) => ({
+          source,
+          kindHint: "armor",
+        }),
+      ),
+  ];
+
+  return sources.flatMap(
+    ({ source, kindHint }, index) => {
+      const weaponModel =
+        source?.weaponModel;
+
+      const armorModel =
+        source?.armorModel;
+
+      const model =
+        weaponModel
+        || armorModel
+        || source;
+
+      const name =
+        text(
+          firstDefined(
+            model?.name,
+            source?.name,
+          ),
+        );
+
+      if (!name) {
+        return [];
+      }
+
+      const inferredKind =
+        weaponModel
+        || kindHint === "weapon"
+          ? "weapon"
+          : armorModel
+            || kindHint === "armor"
+            ? "armor"
+            : /shield/i.test(
+                text(
+                  firstDefined(
+                    model?.type,
+                    model?.category,
+                    source?.type,
+                    name,
+                  ),
+                ),
+              )
+              ? "shield"
+              : /ammunition|arrow|bolt/i.test(
+                  text(
+                    firstDefined(
+                      model?.type,
+                      model?.category,
+                      source?.type,
+                    ),
+                  ),
+                )
+                ? "ammunition"
+                : "item";
+
+      const quantity =
+        Math.max(
+          0,
+          Math.trunc(
+            number(
+              firstDefined(
+                source?.amount,
+                source?.quantity,
+                source?.count,
+              ),
+              1,
+            ),
+          ),
+        );
+
+      const weight =
+        optionalNumber(
+          source?.weight,
+          model?.weight,
+        ) ?? 0;
+
+      const detail =
+        text(
+          firstDefined(
+            source?.description,
+            model?.description,
+            source?.notes,
+            model?.notes,
+          ),
+        );
+
+      const base = {
+        id:
+          `cah-item-${slug(source?.id || model?.id || name)}-${index}`,
+
+        name,
+        quantity,
+
+        equipped:
+          Boolean(
+            source?.isEquipped
+            ?? source?.equipped,
+          ),
+
+        attuned:
+          Boolean(
+            source?.isAttuned
+            ?? source?.attuned,
+          ),
+
+        detail,
+        weight,
+
+        importedFrom:
+          "5e Companion",
+
+        imported:
+          true,
+
+        provenance: {
+          type:
+            "cah-import",
+
+          source:
+            "5e Companion",
+
+          reviewStatus:
+            "review-required",
+
+          reviewed:
+            false,
+        },
+
+        importedItemSnapshot:
+          safeStructuredSnapshot(
+            {
+              source,
+              model,
+            },
+            null,
+            `${name} import`,
+            125000,
+          ),
+      };
+
+      if (inferredKind === "weapon") {
+        const category =
+          weaponCategory(
+            model,
+            source,
+          );
+
+        const primaryPacket =
+          damagePacketFrom(
+            firstDefined(
+              model?.damageModel,
+              source?.damageModel,
+              model?.damage,
+              source?.damage,
+              {
+                dice:
+                  firstDefined(
+                    model?.damageDice,
+                    source?.damageDice,
+                    model?.dice,
+                    source?.dice,
+                    {
+                      damageDiceAmount:
+                        firstDefined(
+                          model?.damageDiceAmount,
+                          source?.damageDiceAmount,
+                        ),
+
+                      damageDiceName:
+                        firstDefined(
+                          model?.damageDiceName,
+                          source?.damageDiceName,
+                        ),
+                    },
+                  ),
+
+                damageType:
+                  firstDefined(
+                    model?.damageType,
+                    source?.damageType,
+                    model?.damageTypeName,
+                    source?.damageTypeName,
+                  ),
+              },
+            ),
+          ) || {};
+
+        const ability =
+          normalizedAbilityName(
+            firstDefined(
+              source?.attackAbility,
+              source?.attackAbilityName,
+              source?.ability,
+              source?.abilityName,
+              model?.attackAbility,
+              model?.abilityName,
+            ),
+          );
+
+        const explicitProficiency =
+          booleanOrUndefined(
+            source?.isProficient,
+            source?.proficient,
+            model?.isProficient,
+            model?.proficient,
+          );
+
+        const properties =
+          propertyNames(
+            source?.properties,
+            model?.properties,
+            source?.weaponProperties,
+            model?.weaponProperties,
+          );
+
+        for (const [field, property] of [
+          ["finesse", "finesse"],
+          ["light", "light"],
+          ["heavy", "heavy"],
+          ["loading", "loading"],
+          ["reach", "reach"],
+          ["thrown", "thrown"],
+          ["twoHanded", "two-handed"],
+          ["twoHandedWeapon", "two-handed"],
+          ["versatile", "versatile"],
+          ["special", "special"],
+          ["ammunition", "ammunition"],
+        ]) {
+          if (
+            booleanOrUndefined(
+              source?.[field],
+              model?.[field],
+            ) === true
+            && !properties.includes(property)
+          ) {
+            properties.push(property);
+          }
+        }
+
+        return [{
+          ...base,
+
+          attackAbility:
+            ability
+            || "auto",
+
+          proficiencyOverride:
+            explicitProficiency === true
+              ? "proficient"
+              : explicitProficiency === false
+                ? "not-proficient"
+                : "auto",
+
+          attackBonus:
+            optionalNumber(
+              source?.attackBonus,
+              source?.extraAttackBonus,
+              model?.attackBonus,
+              model?.extraAttackBonus,
+            ) ?? 0,
+
+          damageBonus:
+            optionalNumber(
+              source?.damageBonus,
+              source?.extraDamageBonus,
+              model?.damageBonus,
+              model?.extraDamageBonus,
+            ) ?? 0,
+
+          magicBonus:
+            optionalNumber(
+              source?.magicBonus,
+              model?.magicBonus,
+            ) ?? 0,
+
+          secondaryDamage:
+            secondaryDamagePackets(
+              source,
+              model,
+            ),
+
+          equipment: {
+            kind: "weapon",
+
+            name,
+
+            damageDice:
+              primaryPacket.dice
+              || "1d4",
+
+            damageType:
+              primaryPacket.type
+              || "",
+
+            properties,
+
+            versatileDamage:
+              diceExpression(
+                firstDefined(
+                  source?.versatileDamage,
+                  model?.versatileDamage,
+                  source?.twoHandedDamage,
+                  model?.twoHandedDamage,
+                ),
+              ),
+
+            ...category,
+
+            attackType:
+              attackType(
+                model,
+                source,
+              ),
+
+            range:
+              rangeProfile(
+                source,
+                model,
+              ),
+
+            ammunitionType:
+              text(
+                firstDefined(
+                  source?.ammunitionType,
+                  model?.ammunitionType,
+                  source?.ammoType,
+                  model?.ammoType,
+                ),
+              ).toLowerCase(),
+
+            weight,
+          },
+        }];
+      }
+
+      if (inferredKind === "armor") {
+        const category =
+          armorCategory(
+            firstDefined(
+              model?.category,
+              model?.armorCategory,
+              source?.category,
+              source?.armorCategory,
+              model?.type,
+              source?.type,
+            ),
+          );
+
+        const acBase =
+          optionalNumber(
+            model?.acBase,
+            model?.baseAc,
+            model?.armorClass,
+            model?.ac,
+            model?.armor,
+            source?.acBase,
+            source?.baseAc,
+            source?.armorClass,
+            source?.ac,
+            source?.armor,
+          );
+
+        const addDexterityExplicit =
+          booleanOrUndefined(
+            model?.addDexterity,
+            model?.addDex,
+            source?.addDexterity,
+            source?.addDex,
+          );
+
+        const dexterityCap =
+          optionalNumber(
+            model?.dexterityCap,
+            model?.maxDexterityBonus,
+            model?.maxDexBonus,
+            source?.dexterityCap,
+            source?.maxDexterityBonus,
+            source?.maxDexBonus,
+          );
+
+        const addDexterity =
+          addDexterityExplicit
+          ?? (
+            category === "light"
+            || category === "medium"
+          );
+
+        return [{
+          ...base,
+
+          equipment: {
+            kind: "armor",
+
+            acBase:
+              acBase ?? 10,
+
+            addDexterity,
+
+            dexterityCap:
+              addDexterity
+                ? dexterityCap
+                : null,
+
+            acBonus:
+              optionalNumber(
+                model?.acBonus,
+                model?.extraAc,
+                source?.acBonus,
+                source?.extraAc,
+              ) ?? 0,
+
+            category,
+
+            strengthRequirement:
+              optionalNumber(
+                model?.strengthRequirement,
+                model?.requiredStrength,
+                source?.strengthRequirement,
+                source?.requiredStrength,
+              ),
+
+            stealthDisadvantage:
+              Boolean(
+                firstDefined(
+                  booleanOrUndefined(
+                    model?.stealthDisadvantage,
+                    source?.stealthDisadvantage,
+                  ),
+                  booleanOrUndefined(
+                    model?.disadvantageStealth,
+                    source?.disadvantageStealth,
+                  ),
+                  false,
+                ),
+              ),
+          },
+        }];
+      }
+
+      if (inferredKind === "shield") {
+        return [{
+          ...base,
+
+          equipment: {
+            kind: "shield",
+
+            acBonus:
+              optionalNumber(
+                model?.acBonus,
+                source?.acBonus,
+                model?.armorClassBonus,
+                source?.armorClassBonus,
+              ) ?? 2,
+
+            weight,
+          },
+        }];
+      }
+
+      if (inferredKind === "ammunition") {
+        return [{
+          ...base,
+
+          equipment: {
+            kind: "ammunition",
+
+            ammunitionType:
+              text(
+                firstDefined(
+                  model?.ammunitionType,
+                  source?.ammunitionType,
+                  model?.type,
+                  source?.type,
+                  name,
+                ),
+              ).toLowerCase(),
+
+            weight,
+          },
+        }];
+      }
+
+      return [{
+        ...base,
+
+        equipment:
+          undefined,
+      }];
+    },
+  );
 }
 
 function featureDetail(source, level) {
@@ -224,21 +1769,228 @@ function featureDetail(source, level) {
 }
 
 function mapFeatures(raw, classLevels, models) {
-  const totalLevel = classLevels.reduce((sum, entry) => sum + entry.level, 0);
+  const totalLevel =
+    classLevels.reduce(
+      (sum, entry) =>
+        sum + entry.level,
+      0,
+    );
+
   const imported = [];
-  for (const entry of classLevels) {
-    const job = list(raw.jobs).find((candidate) => text(candidate?.jobId).toLowerCase() === entry.classId);
-    const archetype = list(models.get(entry.classId)?.archetypes).find((candidate) => text(candidate?.id) === text(job?.archetypeId));
-    for (const grant of list(archetype?.features).filter((candidate) => number(candidate?.level, 1) <= entry.level)) {
-      const feat = grant?.feat || grant;
-      imported.push({ id: `cah-feature-${slug(feat?.id || feat?.name)}`, name: text(feat?.name), source: `${entry.subclass || CLASS_RULES[entry.classId].name} ${number(grant?.level, 1)}`, detail: featureDetail(feat, entry.level), imported: true });
+
+  function importedFeature(
+    feature,
+    {
+      idPrefix,
+      source,
+      level,
+      container,
+    },
+  ) {
+    const resolved =
+      resolveRichFeature(
+        feature,
+        container || feature,
+        level,
+      );
+
+    const name =
+      text(
+        resolved?.name
+        || feature?.name,
+      );
+
+    if (!name) {
+      return null;
+    }
+
+    const detail =
+      featureDetail(
+        resolved,
+        level,
+      )
+      || featureDetail(
+        feature,
+        level,
+      );
+
+    return {
+      id:
+        `${idPrefix}-${slug(resolved?.id || feature?.id || name)}`,
+
+      name,
+
+      source,
+
+      detail,
+
+      rawImportedDetail:
+        detail,
+
+      imported:
+        true,
+
+      provenance: {
+        type:
+          "cah-import",
+
+        source:
+          "5e Companion",
+
+        reviewStatus:
+          "review-required",
+
+        reviewed:
+          false,
+      },
+
+      importedFeatureSnapshot:
+        safeStructuredSnapshot(
+          {
+            selected: feature,
+            resolved,
+          },
+          null,
+          `${name} feature import`,
+          125000,
+        ),
+    };
+  }
+
+  for (
+    const entry
+    of classLevels
+  ) {
+    const job =
+      list(raw.jobs)
+        .find(
+          (candidate) =>
+            text(candidate?.jobId)
+              .toLowerCase()
+            === entry.classId,
+        );
+
+    const model =
+      models.get(
+        entry.classId,
+      );
+
+    const archetype =
+      list(model?.archetypes)
+        .find(
+          (candidate) =>
+            text(candidate?.id)
+            === text(job?.archetypeId),
+        );
+
+    for (
+      const grant
+      of list(archetype?.features)
+        .filter(
+          (candidate) =>
+            number(
+              candidate?.level,
+              1,
+            )
+            <= entry.level,
+        )
+    ) {
+      const feat =
+        grant?.feat
+        || grant;
+
+      const mapped =
+        importedFeature(
+          feat,
+          {
+            idPrefix:
+              "cah-feature",
+
+            source:
+              `${entry.subclass || CLASS_RULES[entry.classId].name} ${number(grant?.level, 1)}`,
+
+            level:
+              entry.level,
+
+            container:
+              archetype,
+          },
+        );
+
+      if (mapped) {
+        imported.push(mapped);
+      }
     }
   }
-  for (const feat of list(raw.feats)) imported.push({ id: `cah-feat-${slug(feat?.id || feat?.name)}`, name: text(feat?.name), source: "Imported feat", detail: featureDetail(feat, totalLevel), imported: true });
-  for (const group of list(raw.selectableFeatures)) {
-    for (const selected of list(group?.selectedFeatures)) imported.push({ id: `cah-choice-${slug(selected?.id || selected?.name)}`, name: text(selected?.name), source: text(group?.name) || "Imported class choice", detail: featureDetail(selected, totalLevel), imported: true });
+
+  for (
+    const feat
+    of list(raw.feats)
+  ) {
+    const mapped =
+      importedFeature(
+        feat,
+        {
+          idPrefix:
+            "cah-feat",
+
+          source:
+            "Imported feat",
+
+          level:
+            totalLevel,
+
+          container:
+            raw.feats,
+        },
+      );
+
+    if (mapped) {
+      imported.push(mapped);
+    }
   }
-  return uniqueByName(imported);
+
+  for (
+    const group
+    of list(raw.selectableFeatures)
+  ) {
+    for (
+      const selected
+      of list(group?.selectedFeatures)
+    ) {
+      const mapped =
+        importedFeature(
+          selected,
+          {
+            idPrefix:
+              "cah-choice",
+
+            source:
+              text(group?.name)
+              || "Imported class choice",
+
+            level:
+              totalLevel,
+
+            /*
+             * Search the entire selectable-feature group so
+             * thin selected references can resolve back to
+             * richer option/feature definitions.
+             */
+            container:
+              group,
+          },
+        );
+
+      if (mapped) {
+        imported.push(mapped);
+      }
+    }
+  }
+
+  return uniqueByName(
+    imported,
+  );
 }
 
 function mapResources(raw, totalLevel) {
@@ -309,7 +2061,22 @@ export function normalizeCahCharacter(raw, { now = new Date().toISOString(), idF
   const sessionEntries = mapSessionEntries(raw, importedAt);
   const customSpellCount = spells.filter((spell) => spell.importedCustom).length;
   if (customSpellCount) warnings.push(`${customSpellCount} custom spell${customSpellCount === 1 ? " was" : "s were"} preserved as descriptive character content.`);
-  if (inventory.length) warnings.push(`${inventory.length} inventory entr${inventory.length === 1 ? "y was" : "ies were"} imported descriptively; verify equipped armor and weapon mechanics.`);
+  if (inventory.length) {
+    const structuredItems =
+      inventory.filter(
+        (item) =>
+          item?.equipment?.kind
+          && item.equipment.kind !== "item",
+      ).length;
+
+    const descriptiveItems =
+      inventory.length
+      - structuredItems;
+
+    warnings.push(
+      `${inventory.length} inventory entr${inventory.length === 1 ? "y was" : "ies were"} imported. ${structuredItems} retained structured equipment mechanics${descriptiveItems ? `; ${descriptiveItems} remain descriptive-only` : ""}. Imported equipment is marked for review.`,
+    );
+  }
   if (sessionEntries.length) warnings.push(`${sessionEntries.length} CAH note${sessionEntries.length === 1 ? " was" : "s were"} added to the session archive.`);
   if (list(raw.advantages).length || list(raw.disadvantages).length || list(raw.effectApplications).length) warnings.push("Third-party advantage, disadvantage, or effect-application records were preserved only in import metadata; no unregistered mechanics were activated.");
   const sourceId = text(raw.id) || "character";
