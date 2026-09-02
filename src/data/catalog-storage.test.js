@@ -230,7 +230,7 @@
 
   test("v2 session prose migrates into a dated archive without data loss", () => {
     const migrated = migrateState({ schemaVersion: 2, activeCharacterId: "legacy", settings: {}, characters: [{ id: "legacy", name: "Legacy", classLevels: [], notes: "Recovered the moon key.", updatedAt: "2026-08-24T20:00:00.000Z", customField: "keep" }] });
-    assert.equal(migrated.schemaVersion, 3);
+    assert.equal(migrated.schemaVersion, SCHEMA_VERSION);
     assert.equal(migrated.characters[0].notes, "");
     assert.deepEqual(migrated.characters[0].sessionEntries.map(({ sessionDate, text }) => ({ sessionDate, text })), [{ sessionDate: "2026-08-24", text: "Recovered the moon key." }]);
     assert.equal(migrated.characters[0].customField, "keep");

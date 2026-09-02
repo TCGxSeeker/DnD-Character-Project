@@ -118,7 +118,7 @@ export const seedCharacters = [
 ];
 
 export const initialState = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   activeCharacterId: "vaelithra",
   characters: seedCharacters,
   settings: { ruleset: "srd-2014", motion: true },
