@@ -2,6 +2,17 @@
 
 All notable release changes are recorded here.
 
+## [Unreleased]
+
+### Added
+
+- A defensive 5e Companion `.cah` ingestion lane with content detection, compatibility mapping, review warnings, and one-character native import.
+- CAH coverage inside the consolidated catalog/storage suite, including malformed files and unregistered-mechanics quarantine.
+
+### Preserved
+
+- Arcane Observatory JSON remains the sole native library backup, restore, and export contract.
+
 ## [0.9.0] - 2026-09-01
 
 ### Added

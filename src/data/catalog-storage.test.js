@@ -36,6 +36,96 @@
   });
 }
 
+// Third-party character ingestion stays in this broad catalog/storage suite so
+// every supported file lane is verified against the same native state contract.
+{
+  const { default: test } = await import("node:test");
+  const { default: assert } = await import("node:assert/strict");
+  const { initialState } = await import("./seed.js");
+  const { exportState } = await import("./store.js");
+  const { prepareCharacterImport } = await import("../importers/characterImport.js");
+
+  function cahFixture() {
+    const subclass = {
+      id: "Custom-test-origin",
+      name: "Test Origin",
+      features: [{ level: 1, feat: { id: "test-feature", name: "Imported Gift", descriptionModels: [{ level: 1, description: "Descriptive only." }] } }],
+    };
+    return {
+      jsonType: "character",
+      id: "source-character",
+      name: "Imported Hero",
+      alignmentName: "TRUE_NEUTRAL",
+      created: "2026-01-02T03:04:05.000Z",
+      updated: "2026-02-03T04:05:06.000Z",
+      jobs: [{ jobId: "sorcerer", level: 3, dice: 2, archetypeId: subclass.id }],
+      allRequiredClasses: { jobs: [JSON.stringify({ id: "sorcerer", name: "Sorcerer", archetypes: [subclass] })] },
+      race: { raceId: "elf", subraceId: "palid_elf" },
+      requiredRace: JSON.stringify({ id: "elf", name: "Elf", speed: { normal: 30 }, subraces: [{ id: "palid_elf", name: "Palid Elf" }] }),
+      background: { backgroundId: "noble" },
+      requiredBackground: JSON.stringify({ id: "noble", name: "Noble" }),
+      strength: { score: 8, save: false }, dexterity: { score: 14, save: false }, constitution: { score: 14, save: true },
+      intelligence: { score: 12, save: false }, wisdom: { score: 10, save: false }, charisma: { score: 18, save: true },
+      baseHp: 20, hp: 23, tempHp: 2, baseAc: 10, extraAC: 0, speedModifier: 0, exp: 900, hasInspiration: true,
+      skills: [{ typeName: "ARCANA", proficiencyName: "FULL" }, { typeName: "DECEPTION", proficiencyName: "EXPERTISE" }],
+      proficiencies: [{ name: "Dagger", typeName: "WEAPON" }],
+      spellSlots: { first: 1, second: 0 },
+      spells: [{ name: "Minor Illusion", level: 0, components: "S, M (fleece)", castingTime: "1 action", range: "30 feet", duration: "1 minute", description: "An illusion.", prepared: false }],
+      equipment: [{ id: "dagger", name: "Dagger", amount: 2, isEquipped: true, isAttuned: false, description: "Imported item." }],
+      weapons: [], armors: [], feats: [], selectableFeatures: [],
+      specialAbilities: [{ id: "points", name: "Sorcery Points", usesLeft: 1, amountsPerLevel: [{ level: 2, amount: 2 }, { level: 3, amount: 3 }] }],
+      notes: [{ id: "note-one", createdString: "2026-02-01T10:00:00.000Z", text: "Imported recap." }],
+      conditions: {}, effectApplications: [{ target: "unknown-rule", amount: 99 }], advantages: [], disadvantages: [],
+      copper: 1, silver: 2, electrum: 3, gold: 4, platinum: 5, image: "/9j/test-image",
+      personalityTraits: "Careful", ideals: "Truth", bonds: "House", flaws: "Proud",
+    };
+  }
+
+  test("character import dispatcher preserves the native backup lane", () => {
+    const prepared = prepareCharacterImport({ fileName: "arcane-backup.json", text: exportState(initialState) });
+    assert.equal(prepared.kind, "native-backup");
+    assert.equal(prepared.state.schemaVersion, initialState.schemaVersion);
+    assert.equal(prepared.state.characters.length, initialState.characters.length);
+  });
+
+  test("CAH ingestion normalizes compatible state and quarantines unknown mechanics", () => {
+    const prepared = prepareCharacterImport({
+      fileName: "hero.cah",
+      text: JSON.stringify(cahFixture()),
+      now: "2026-09-02T00:00:00.000Z",
+      idFactory: () => "imported-character-id",
+    });
+    const character = prepared.character;
+    assert.equal(prepared.kind, "cah-character");
+    assert.equal(character.id, "imported-character-id");
+    assert.deepEqual(character.classLevels, [{ classId: "sorcerer", level: 3, subclass: "Test Origin", subclassId: "imported-test-origin" }]);
+    assert.equal(character.ancestry, "Elf — Pallid Elf");
+    assert.equal(character.background, "Noble");
+    assert.deepEqual(character.abilities, { strength: 8, dexterity: 14, constitution: 14, intelligence: 12, wisdom: 10, charisma: 18 });
+    assert.equal(character.maxHp, 26);
+    assert.equal(character.hp, 23);
+    assert.deepEqual(character.usedSpellSlots, [3, 2]);
+    assert.deepEqual(character.skills, ["Arcana", "Deception"]);
+    assert.deepEqual(character.expertise, ["Deception"]);
+    assert.equal(character.spells[0].sourceClassId, "sorcerer");
+    assert.equal(character.inventory[0].quantity, 2);
+    assert.equal(character.resources[0].current, 1);
+    assert.equal(character.resources[0].max, 3);
+    assert.equal(character.sessionEntries[0].text, "Imported recap.");
+    assert.equal(character.portraitDataUrl, "data:image/jpeg;base64,/9j/test-image");
+    assert.deepEqual(character.effects, []);
+    assert.equal(character.importMetadata.format, "5e-companion-cah");
+    assert.ok(prepared.warnings.some((warning) => warning.includes("unregistered mechanics")));
+  });
+
+  test("CAH content validation rejects renamed or structurally invalid files", () => {
+    assert.throws(() => prepareCharacterImport({ fileName: "renamed.cah", text: JSON.stringify({ schemaVersion: 3, characters: [] }) }), /not a 5e Companion/);
+    assert.throws(() => prepareCharacterImport({ fileName: "broken.cah", text: "not json" }), /not valid JSON/);
+    const missingAbilities = cahFixture(); delete missingAbilities.wisdom;
+    assert.throws(() => prepareCharacterImport({ fileName: "missing.cah", text: JSON.stringify(missingAbilities) }), /ability scores/);
+  });
+}
+
 // src/data/migrationFixtures.test.js
 {
   const { default: test } = await import("node:test");

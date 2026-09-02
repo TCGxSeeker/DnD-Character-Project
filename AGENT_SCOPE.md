@@ -12,6 +12,7 @@ This file is the short, agent-facing authority for what Arcane Observatory is cu
 - Safe 2014 multiclassing: prerequisites, total/class levels, starting-versus-later proficiencies, mixed Hit Dice, combined Spellcasting slots, separate Pact Magic, and non-stacking features.
 - A live Sheet with canonical HP, temporary HP, Hit Dice, inspiration, AC, initiative, speed, saves, skills, senses, languages, attacks, spell capacity, spell slots, class resources, conditions, and linked game pieces.
 - Character libraries for spells, inventory, features, notes, and structured History.
+- Multiple guarded ingestion lanes: the native Arcane Observatory backup/restore format remains authoritative, while third-party adapters such as 5e Companion `.cah` normalize one reviewed character into native state without becoming persistence or export formats.
 - Three-page creation: Identity, Class/target level, and Ability Scores, including ancestry option, background, class skills, point buy/manual scores, and selectable starting equipment.
 - Open5e v2 `srd-2014` as the approved runtime licensed-reference provider. Locally authored deterministic rules remain the calculation authority.
 - Installable/reproducible PWA output, offline caching, local persistence, import/export, and Sites packaging.
@@ -68,6 +69,7 @@ Before implementing a proposed item:
 
 - Keep rules logic deterministic and outside React.
 - Preserve existing user data and unrelated character state.
+- Never let a third-party importer replace, weaken, or masquerade as the native backup contract. Imported mechanics activate only through registered domain rules and typed effects; unknown content remains descriptive or explicitly warned.
 - Add focused regression tests for every mechanical change.
 - Keep tests grouped by broad behavioral responsibility. Do not restore one-test-file-per-module structure; add cases to the six consolidated application suites unless a genuinely separate runtime boundary requires its own file.
 - Run `npm.cmd test`, `npm.cmd run build`, and `npm.cmd run test:packaging` after meaningful changes.

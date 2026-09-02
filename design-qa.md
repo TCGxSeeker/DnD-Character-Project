@@ -185,6 +185,16 @@ The level-up modal capture provides a readable focused view of the floating mate
 
 final result: passed
 
+## 5e Companion CAH import review — 2026-09-01
+
+- Desktop QA at 1440 × 1024 verified the Alkyn import summary, native-format boundary, compatibility warning hierarchy, complete footer actions, and cancel-without-mutation behavior.
+- Narrow QA at 390 × 844 verified the mobile character drawer upload path, single-column review layout, contained scrolling, and reachable confirmation action without horizontal overflow.
+- Confirming the sample added one native level 11 Devil Soul Sorcerer with 71/71 HP, 28 spells, six archived notes, the embedded portrait, and preserved source metadata. The imported Sheet, Spells, and Notes views rendered normally.
+- Unknown subclass mechanics remained descriptive and did not register executable effects. Browser console warnings/errors: none.
+- Automated verification: 167 application tests, 4 Sites tests, 3 portable-server tests, a 260-build matrix, and the production PWA build passed.
+
+final result: passed
+
 ## Finalization, provenance, and portable release — 2026-09-01
 
 - Refreshed the licensed Open5e `srd-2014` class snapshot: 12 classes, 12 subclasses, 110 class features, and 60 subclass features. The local Artificer/Battle Smith package remains explicitly expanded content.

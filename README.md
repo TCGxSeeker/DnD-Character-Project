@@ -45,6 +45,7 @@ The production client is written to `dist/client`. `npm.cmd run serve:portable` 
 
 - Characters and settings are stored locally, not in a project server or account.
 - Export a JSON backup before changing computers, browsers, or major application versions.
+- Import accepts Arcane Observatory `.json` library backups and 5e Companion `.cah` characters. CAH adds one reviewed character; all later saves and exports use Arcane Observatory’s native format.
 - Installing a newer desktop release preserves the Electron application profile and its local character store.
 - Open5e searches need internet access. Core character data, calculations, and the bundled catalog remain local-first.
 

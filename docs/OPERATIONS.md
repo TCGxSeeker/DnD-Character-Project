@@ -51,17 +51,20 @@ This is the living checklist for treating Arcane Observatory like a real downloa
 - The guided feat-name catalog and Artificer/Battle Smith/Warforged grant catalogs ship in the client. Level-up decisions and automatic grants remain functional offline; Open5e is a reference-search enhancement rather than a progression dependency.
 - Structured History and note search run entirely in local character data. A backup includes both source fields and progression audit events.
 - Uploaded character portraits are center-cropped and compressed in the browser, stored with the character, and included in JSON backups. Large character libraries should be exported regularly because browser storage quotas vary.
+- Import accepts native `.json` library backups and 5e Companion `.cah` character exports up to 20 MB. Native JSON restores the validated library exactly as before; CAH adds one reviewed character and never changes the native export format.
+- CAH parsing and normalization happen locally. Embedded third-party rules catalogs are used only to identify the selected character options; unregistered mechanics are not activated and the original CAH payload is not retained as a competing save format.
 
 ## Release checklist
 
 1. Update the application version, changelog, and any schema migration.
 2. Run `npm.cmd test`, `npm.cmd run build`, and `npm.cmd run test:packaging` (Sites, portable server, and the 260-build class matrix).
 3. Exercise create/edit/level-up (subclass, ASI, feat, granted spells/features, companion), spell/inventory History, note search, and backup/restore offline and online.
-4. Confirm installability, service-worker update behavior, and a clean first-run state.
-5. Verify at 1440×1024, a common laptop width, and 390px narrow width.
-6. Confirm no secrets, personal exports, caches, `node_modules`, `dist`, or installer output are tracked in the source repository.
-7. Include `README.md`, version notes, data-backup instructions, Open5e attribution/source notes, and known limitations.
-8. Review `docs/CONTENT_CATALOG.md` and confirm that distributable builds contain no copied proprietary rules prose.
+4. Exercise native JSON restore and CAH preview/confirm/cancel with a representative portrait-bearing export; confirm malformed and unsupported files leave the library unchanged.
+5. Confirm installability, service-worker update behavior, and a clean first-run state.
+6. Verify at 1440×1024, a common laptop width, and 390px narrow width.
+7. Confirm no secrets, personal exports, caches, `node_modules`, `dist`, or installer output are tracked in the source repository.
+8. Include `README.md`, version notes, data-backup instructions, Open5e attribution/source notes, and known limitations.
+9. Review `docs/CONTENT_CATALOG.md` and confirm that distributable builds contain no copied proprietary rules prose or personal CAH fixtures.
 
 ## Sharing checklist
 

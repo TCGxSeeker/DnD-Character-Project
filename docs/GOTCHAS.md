@@ -40,6 +40,8 @@
 - Merely knowing or preparing a summon spell must not create a present companion. Spell-origin pieces are instantiated when the user casts/adds one and retain duration or concentration metadata separately from presence.
 - LocalStorage writes can fail or exceed quota. Surface a readable error and preserve the last in-memory state.
 - Never conflate full JSON backup with reference-data cache export.
+- Never conflate third-party character ingestion with native backup/restore. `.cah` is parsed into one reviewed native character; it does not restore a library, remain a parallel persistence format, or become an export option.
+- 5e Companion CAH files are outer JSON records containing some embedded class, ancestry, and background records as JSON strings. Parse them defensively, map only selected character-owned data, and never activate their arbitrary effects or formulas.
 - Local saves use a pending transaction record plus a recovery copy. Never write the primary character key directly or clear pending/recovery records as a migration shortcut.
 - Schema migrations advance exactly one integer version per registry entry and preserve unknown user-authored fields unless a documented incompatibility makes that unsafe. Imports validate and migrate before replacing in-memory state.
 - The Product Design bootstrap script crashed while copying directly to this G: drive; preserve the manually copied official template files.

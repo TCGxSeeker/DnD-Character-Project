@@ -10,12 +10,14 @@ Build a desktop-first, narrow-responsive local web app with five complete loops:
 4. Complete a staged level-up with class selection, HP method, required subclass choices, ASI-or-feat decisions, linked companion creation, automatic grants, and before/after review.
 5. Browse Open5e SRD reference data and add selected spells/items to the active character.
 6. Create a character through Identity, Class & target level, and Ability Scores pages; seed background skills and starting equipment, then run reviewed level-up transactions until the selected starting level is reached.
+7. Ingest a single 5e Companion `.cah` character through a guarded adapter and review screen while retaining the existing Arcane Observatory JSON library backup as the only native restore/export contract.
 
 ## Architecture
 
 - React/Vite presentation in `src/`.
 - Pure calculations in `src/domain/rules.js` and `src/domain/character.js`.
 - Versioned local persistence in `src/data/store.js`.
+- File dispatch lives in `src/importers/characterImport.js`. Native JSON delegates unchanged to `importState`; `.cah` content is validated and normalized in `src/importers/cah.js`, then added as one ordinary native character only after review.
 - Open5e v2 access/cache in `src/data/open5e.js`.
 - One main route with view state for Sheet, Spells, Inventory, Features, Notes, and History.
 - Modal/drawer flows for create/edit, library search, and level up.
@@ -53,6 +55,7 @@ Build a desktop-first, narrow-responsive local web app with five complete loops:
 - The normal Sheet condenses skills into the core stat workspace and shows only positive bonuses. Edit mode intentionally restores the complete 18-skill proficiency editor.
 - Spell detail records include casting time, reaction condition, range, duration, concentration, ritual status, V/S/M components, material text, school, full description, and higher-level scaling when supplied by Open5e.
 - New-character creation always commits level 1 first. A selected level 2–20 target opens the same reviewed level-up transaction once per level; closing the wizard pauses the queue without discarding completed levels.
+- Third-party imports never register executable rules, calculation targets, or untyped effects. Supported character-owned values are mapped; custom class/subclass names and descriptions remain readable; ambiguous mechanics and equipment are surfaced as warnings; the original source id and unmapped field names remain in import metadata without storing a second full persistence payload.
 - The 2014 background selection grants its two skill proficiencies immediately. The chosen class package creates real Inventory entries, including machine-readable armor/shield profiles used by derived Armor Class.
 
 ## Annotation priority — 2026-08-09

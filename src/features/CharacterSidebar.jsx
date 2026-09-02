@@ -28,7 +28,7 @@ export function CharacterSidebar({ characters, activeId, onSelect, onNew, onMana
       <div className="local-status"><span className="status-dot" /> All changes saved locally</div>
       <div className="data-actions">
         <button onClick={onExport}><DownloadSimple size={16} /> Export</button>
-        <label><UploadSimple size={16} /> Import<input type="file" accept="application/json" onChange={onImport} /></label>
+        <label><UploadSimple size={16} /> Import<input type="file" accept=".json,.cah,application/json" onChange={onImport} /></label>
       </div>
     </aside>
   );

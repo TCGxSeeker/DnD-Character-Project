@@ -658,6 +658,21 @@ textarea { resize: vertical; }
 .review-grid strong { margin-top: 7px; color: var(--gold-strong); }
 .error-banner { margin-top: 12px; border: 1px solid rgba(240,154,140,.35); border-radius: 12px; padding: 11px; color: var(--danger); background: rgba(240,154,140,.07); font-size: 11px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 9px; padding: 18px 22px; border-top: 1px solid var(--line); }
+.character-import-modal { width: min(760px, 100%); }
+.import-review { display: grid; gap: 16px; padding: 22px; }
+.import-review-lead, .import-safe-boundary { display: flex; align-items: flex-start; gap: 12px; border: 1px solid var(--line-strong); border-radius: 15px; padding: 14px; background: linear-gradient(140deg, rgba(228,188,106,.09), rgba(121,207,193,.04)); }
+.import-review-lead > svg { flex: 0 0 auto; color: var(--gold); }
+.import-review-lead strong, .import-safe-boundary strong { color: var(--gold-strong); font: 500 16px Cinzel, Georgia, serif; }
+.import-review-lead p, .import-safe-boundary p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.import-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.import-summary-grid > div { min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; background: var(--glass-inset-bg); }
+.import-summary-grid dt { color: var(--gold); font-size: 8px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.import-summary-grid dd { margin: 5px 0 0; color: var(--ink); font-size: 11px; line-height: 1.45; }
+.import-safe-boundary { border-color: rgba(121,207,193,.28); background: rgba(62,184,166,.06); }
+.import-safe-boundary > svg { flex: 0 0 auto; color: var(--teal); }
+.import-warning-list { border: 1px solid rgba(232,135,106,.3); border-radius: 14px; padding: 13px 15px; background: rgba(160,58,40,.06); }
+.import-warning-list header { display: flex; align-items: center; gap: 8px; color: var(--danger); }
+.import-warning-list ul { display: grid; gap: 7px; margin: 11px 0 0; padding-left: 18px; color: var(--muted); font-size: 10px; line-height: 1.45; }
 .creator-form { display: grid; gap: 24px; }
 .form-section { display: grid; gap: 12px; }
 .creator-modal { width: min(940px, 100%); }
@@ -1052,6 +1067,8 @@ select option { background: #10201d; }
   .creator-step { min-height: 0; }
   .equipment-preview ul { grid-template-columns: 1fr; }
   .modal-actions { padding: 14px 16px; }
+  .import-review { padding: 16px; }
+  .import-summary-grid { grid-template-columns: 1fr; }
   .toast { right: 10px; left: 10px; bottom: 10px; }
 }
 

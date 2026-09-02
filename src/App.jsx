@@ -4,8 +4,10 @@ import {
 } from "@phosphor-icons/react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { CharacterSidebar } from "./features/CharacterSidebar.jsx";
+import { CharacterImportModal } from "./features/CharacterImportModal.jsx";
 import { resolveCharacterPortrait } from "./domain/portraits.js";
-import { exportState, importState } from "./data/store.js";
+import { exportState } from "./data/store.js";
+import { prepareCharacterImport } from "./importers/characterImport.js";
 import { useCharacterStore } from "./data/useCharacterStore.js";
 import { totalCharacterLevel } from "./domain/rules.js";
 import vaelithra from "./assets/vaelithra.png";
@@ -45,6 +47,7 @@ export function App() {
   const [levelUpOpen, setLevelUpOpen] = useState(false);
   const [creationTargetLevel, setCreationTargetLevel] = useState(null);
   const [managerOpen, setManagerOpen] = useState(false);
+  const [importCandidate, setImportCandidate] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [installEvent, setInstallEvent] = useState(null);
@@ -90,8 +93,14 @@ export function App() {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      setState(importState(await file.text()));
-      notify("Character library restored.");
+      if (file.size > 20 * 1024 * 1024) throw new Error("Import files must be 20 MB or smaller.");
+      const prepared = prepareCharacterImport({ fileName: file.name, text: await file.text() });
+      if (prepared.kind === "native-backup") {
+        setState(prepared.state);
+        notify("Character library restored from the native backup.");
+      } else {
+        setImportCandidate(prepared);
+      }
     } catch (error) {
       notify(error.message || "That backup could not be imported.");
     } finally {
@@ -161,6 +170,7 @@ export function App() {
 
       {(toast || saveError) && <div className={`toast ${saveError ? "error" : ""}`}>{saveError || toast}</div>}
       <Suspense fallback={null}>
+        {importCandidate && <CharacterImportModal candidate={importCandidate} onClose={() => setImportCandidate(null)} onConfirm={() => { addCharacter(importCandidate.character); setImportCandidate(null); setActiveTab("sheet"); setSidebarOpen(false); notify(`${importCandidate.character.name} imported as a native character.`); }} />}
         {creatorOpen && <CharacterCreator onClose={() => setCreatorOpen(false)} onCreate={(character, targetLevel) => { addCharacter(character); setActiveTab("sheet"); setCreationTargetLevel(targetLevel > 1 ? targetLevel : null); notify(targetLevel > 1 ? `${character.name} created at level 1. Guided progression is starting.` : `${character.name} created.`); }} />}
         {managerOpen && <CharacterManager characters={state.characters} activeId={state.activeCharacterId} onClose={() => setManagerOpen(false)} onSelect={(id) => { setActive(id); notify("Active character changed."); }} onDuplicate={duplicateCharacter} onDelete={deleteCharacter} />}
         {levelUpOpen && activeCharacter && <LevelUpWizard character={activeCharacter} targetLevel={creationTargetLevel} onClose={(result) => { setLevelUpOpen(false); if (!result?.committed && creationTargetLevel) { setCreationTargetLevel(null); notify(`Guided starting-level progression paused at level ${totalCharacterLevel(activeCharacter.classLevels)}.`); } }} onCommit={(character) => { updateActive(character); notify(creationTargetLevel && totalCharacterLevel(character.classLevels) < creationTargetLevel ? `${character.name} advanced. Preparing the next level.` : `${character.name} advanced successfully.`); }} />}
