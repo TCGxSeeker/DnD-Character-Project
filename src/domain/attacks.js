@@ -10,12 +10,145 @@ import { specialWeaponRule2014 } from "./specialWeapons2014.js";
 const hasChoice = (character, selection) => (character.classChoices || []).some((choice) => ["fighter-style", "paladin-style", "ranger-style"].includes(choice.id) && choice.selections?.includes(selection));
 export { weaponProfile } from "./weapons.js";
 
-function proficient(character, weapon) {
-  const saved = character.proficiencies?.weapons || [];
-  const classId = character.levelHistory?.[0]?.classId || character.classLevels?.[0]?.classId;
-  const values = (saved.length ? saved : startingProficiencies(classId).weapons).map((entry) => String(entry).toLowerCase());
-  const name = String(weapon.name).toLowerCase();
-  return values.includes(name) || values.includes(`${name}s`) || (weapon.isSimple && values.includes("simple weapons")) || (weapon.isMartial && values.includes("martial weapons"));
+function proficient(character, weapon, item = null) {
+  const override =
+    String(
+      item?.proficiencyOverride
+      || "auto",
+    )
+      .trim()
+      .toLowerCase();
+
+  if (override === "proficient") {
+    return true;
+  }
+
+  if (override === "not-proficient") {
+    return false;
+  }
+
+  const saved =
+    character.proficiencies?.weapons
+    || [];
+
+  const classId =
+    character.levelHistory?.[0]?.classId
+    || character.classLevels?.[0]?.classId;
+
+  const values = (
+    saved.length
+      ? saved
+      : startingProficiencies(classId).weapons
+  ).map(
+    (entry) =>
+      String(entry).toLowerCase(),
+  );
+
+  const name =
+    String(weapon.name).toLowerCase();
+
+  return (
+    values.includes(name)
+    || values.includes(`${name}s`)
+    || (
+      weapon.isSimple
+      && values.includes("simple weapons")
+    )
+    || (
+      weapon.isMartial
+      && values.includes("martial weapons")
+    )
+  );
+}
+
+function attackAbilityFor(
+  character,
+  item,
+  weapon,
+) {
+  const requested =
+    String(
+      item?.attackAbility
+      || "auto",
+    )
+      .trim()
+      .toLowerCase();
+
+  const supported = [
+    "strength",
+    "dexterity",
+    "constitution",
+    "intelligence",
+    "wisdom",
+    "charisma",
+  ];
+
+  if (supported.includes(requested)) {
+    return requested;
+  }
+
+  const strength =
+    abilityModifier(
+      character.abilities?.strength
+      ?? 10,
+    );
+
+  const dexterity =
+    abilityModifier(
+      character.abilities?.dexterity
+      ?? 10,
+    );
+
+  return (
+    weapon.attackType === "ranged"
+    || (
+      weapon.finesse
+      && dexterity > strength
+    )
+  )
+    ? "dexterity"
+    : "strength";
+}
+
+function secondaryDamagePackets(item) {
+  return (
+    Array.isArray(item?.secondaryDamage)
+      ? item.secondaryDamage
+      : []
+  )
+    .filter(
+      (packet) =>
+        packet
+        && typeof packet === "object",
+    )
+    .map(
+      (packet) => ({
+        dice:
+          String(
+            packet.dice
+            || "",
+          ).trim(),
+
+        type:
+          String(
+            packet.type
+            || "",
+          ).trim(),
+
+        bonus:
+          Number.isFinite(
+            Number(packet.bonus),
+          )
+            ? Number(packet.bonus)
+            : 0,
+      }),
+    )
+    .filter(
+      (packet) =>
+        packet.dice
+        || packet.type
+        || packet.bonus,
+    );
 }
 
 export function attackRows(character) {
@@ -23,14 +156,23 @@ export function attackRows(character) {
   const equippedWeapons = (character.inventory || []).filter((item) => item.equipped && Number(item.quantity ?? 1) > 0).map((item) => ({ item, weapon: weaponProfile(item) })).filter(({ weapon }) => weapon);
   const armorRestrictions = armorProficiencyRestrictions(character);
   return equippedWeapons.map(({ item, weapon }) => {
-    const strength = abilityModifier(character.abilities?.strength ?? 10), dexterity = abilityModifier(character.abilities?.dexterity ?? 10);
-    const ability = weapon.attackType === "ranged" || (weapon.finesse && dexterity > strength) ? "dexterity" : "strength";
-    const modifier = ability === "dexterity" ? dexterity : strength;
+    const ability =
+      attackAbilityFor(
+        character,
+        item,
+        weapon,
+      );
+
+    const modifier =
+      abilityModifier(
+        character.abilities?.[ability]
+        ?? 10,
+      );
     const use = weaponUse(item, weapon);
     const otherWeapons = equippedWeapons.filter((entry) => entry.item.id !== item.id);
     const offhandPartner = otherWeapons.some((entry) => entry.weapon.attackType === "melee" && entry.weapon.light && weaponUse(entry.item, entry.weapon).wieldMode === "one-handed" && weaponUse(entry.item, entry.weapon).role !== "offhand");
     const offhandLegal = use.role !== "offhand" || (weapon.attackType === "melee" && weapon.light && use.wieldMode === "one-handed" && offhandPartner);
-    const isProficient = proficient(character, weapon), archery = weapon.attackType === "ranged" && hasChoice(character, "Archery") ? 2 : 0;
+    const isProficient = proficient(character, weapon, item), archery = weapon.attackType === "ranged" && hasChoice(character, "Archery") ? 2 : 0;
     const dueling = weapon.attackType === "melee" && use.wieldMode === "one-handed" && use.role !== "offhand" && otherWeapons.length === 0 && hasChoice(character, "Dueling") ? 2 : 0;
     const offhandModifier = use.role === "offhand" && modifier > 0 && !hasChoice(character, "Two-Weapon Fighting") ? 0 : modifier;
     const magicBonus = Number(item.attackBonus ?? item.magicBonus ?? 0), damageBonus = offhandModifier + dueling + Number(item.damageBonus ?? item.magicBonus ?? 0);
@@ -52,7 +194,11 @@ export function attackRows(character) {
       id: item.id, name: item.name, ability, proficient: isProficient, use,
       attackBonus: modifier + (isProficient ? pb : 0) + archery + magicBonus,
       damage: special?.dealsDamage === false ? "—" : `${damageDice}${damageBonus ? ` ${damageBonus > 0 ? "+" : "−"} ${Math.abs(damageBonus)}` : ""}`,
-      damageType: weapon.damageType, versatileDamage: weapon.versatileDamage, ammunition,
+      damageType: weapon.damageType,
+      versatileDamage: weapon.versatileDamage,
+      secondaryDamage:
+        secondaryDamagePackets(item),
+      ammunition,
       special,
       actionType: use.role === "offhand" ? "bonus action" : "attack action",
       maximumAttacks: Math.min(weapon.loading ? 1 : effectiveExtraAttacks(character), special?.attackLimit ?? Infinity),

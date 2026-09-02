@@ -1,5 +1,6 @@
 import { appendHistoryEvent } from "./history.js";
 import { weaponRuleByName } from "./weapons.js";
+import { normalizeRecordProvenance } from "./provenance.js";
 
 const SIZE_MULTIPLIER = { tiny: 0.5, medium: 1, small: 1, large: 2, huge: 4, gargantuan: 8 };
 
@@ -31,6 +32,794 @@ function withEquipmentHistory(character, title, detail, before = null, after = n
   });
 }
 
+const EDITABLE_ITEM_KINDS = new Set([
+  "item",
+  "weapon",
+  "armor",
+  "shield",
+  "ammunition",
+]);
+
+const ABILITY_OVERRIDES = new Set([
+  "auto",
+  "strength",
+  "dexterity",
+  "constitution",
+  "intelligence",
+  "wisdom",
+  "charisma",
+]);
+
+const PROFICIENCY_OVERRIDES = new Set([
+  "auto",
+  "proficient",
+  "not-proficient",
+]);
+
+const ATTACK_TYPES = new Set([
+  "melee",
+  "ranged",
+]);
+
+const ARMOR_CATEGORIES = new Set([
+  "",
+  "light",
+  "medium",
+  "heavy",
+]);
+
+const WEAPON_PROPERTIES = new Set([
+  "ammunition",
+  "finesse",
+  "heavy",
+  "light",
+  "loading",
+  "reach",
+  "special",
+  "thrown",
+  "two-handed",
+  "versatile",
+]);
+
+function editableText(value, maximum = 10000) {
+  const result = String(value ?? "");
+
+  if (result.length > maximum) {
+    throw new Error(
+      `Editable text cannot exceed ${maximum} characters.`,
+    );
+  }
+
+  return result;
+}
+
+function optionalNumber(
+  value,
+  {
+    minimum = -999,
+    maximum = 999,
+    integer = false,
+  } = {},
+) {
+  if (
+    value == null
+    || value === ""
+  ) {
+    return null;
+  }
+
+  const parsed = Number(value);
+
+  if (
+    !Number.isFinite(parsed)
+    || parsed < minimum
+    || parsed > maximum
+    || (integer && !Number.isInteger(parsed))
+  ) {
+    throw new Error(
+      `Numeric value must be between ${minimum} and ${maximum}${integer ? " and be a whole number" : ""}.`,
+    );
+  }
+
+  return parsed;
+}
+
+function normalizedProperties(value) {
+  const source = Array.isArray(value)
+    ? value
+    : [];
+
+  return [
+    ...new Set(
+      source
+        .map((entry) =>
+          String(entry ?? "")
+            .trim()
+            .toLowerCase(),
+        )
+        .filter((entry) =>
+          WEAPON_PROPERTIES.has(entry),
+        ),
+    ),
+  ];
+}
+
+function normalizedRange(value) {
+  if (
+    !value
+    || typeof value !== "object"
+    || Array.isArray(value)
+  ) {
+    return null;
+  }
+
+  const normal = optionalNumber(
+    value.normal,
+    {
+      minimum: 0,
+      maximum: 100000,
+      integer: true,
+    },
+  );
+
+  const long = optionalNumber(
+    value.long,
+    {
+      minimum: 0,
+      maximum: 100000,
+      integer: true,
+    },
+  );
+
+  if (
+    normal == null
+    && long == null
+  ) {
+    return null;
+  }
+
+  if (
+    normal != null
+    && long != null
+    && long < normal
+  ) {
+    throw new Error(
+      "Long range cannot be shorter than normal range.",
+    );
+  }
+
+  return {
+    normal: normal ?? 0,
+    long: long ?? normal ?? 0,
+    unit:
+      editableText(
+        value.unit || "feet",
+        30,
+      ).trim()
+      || "feet",
+  };
+}
+
+function normalizedSecondaryDamage(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  if (value.length > 12) {
+    throw new Error(
+      "An item cannot have more than 12 secondary damage packets.",
+    );
+  }
+
+  return value.flatMap(
+    (entry) => {
+      if (
+        !entry
+        || typeof entry !== "object"
+        || Array.isArray(entry)
+      ) {
+        return [];
+      }
+
+      const dice =
+        editableText(
+          entry.dice,
+          40,
+        ).trim();
+
+      const type =
+        editableText(
+          entry.type,
+          80,
+        ).trim();
+
+      const bonus =
+        optionalNumber(
+          entry.bonus,
+          {
+            minimum: -999,
+            maximum: 999,
+            integer: true,
+          },
+        ) ?? 0;
+
+      if (
+        !dice
+        && !type
+        && bonus === 0
+      ) {
+        return [];
+      }
+
+      return [{
+        dice,
+        type,
+        bonus,
+      }];
+    },
+  );
+}
+
+function normalizedEquipmentProfile(
+  existing,
+  patch,
+) {
+  const before =
+    existing
+    && typeof existing === "object"
+    && !Array.isArray(existing)
+      ? existing
+      : {};
+
+  const requested =
+    patch
+    && typeof patch === "object"
+    && !Array.isArray(patch)
+      ? {
+          ...before,
+          ...patch,
+        }
+      : before;
+
+  const kind =
+    String(
+      requested.kind
+      || before.kind
+      || "item",
+    )
+      .trim()
+      .toLowerCase();
+
+  if (!EDITABLE_ITEM_KINDS.has(kind)) {
+    throw new Error(
+      `Unsupported equipment kind: ${kind}.`,
+    );
+  }
+
+  if (kind === "item") {
+    return null;
+  }
+
+  if (kind === "weapon") {
+    const attackType =
+      String(
+        requested.attackType
+        || "melee",
+      )
+        .trim()
+        .toLowerCase();
+
+    if (!ATTACK_TYPES.has(attackType)) {
+      throw new Error(
+        "Weapon attack type must be melee or ranged.",
+      );
+    }
+
+    return {
+      ...requested,
+      kind: "weapon",
+
+      name:
+        editableText(
+          requested.name,
+          200,
+        ).trim(),
+
+      damageDice:
+        editableText(
+          requested.damageDice,
+          40,
+        ).trim()
+        || "1d4",
+
+      damageType:
+        editableText(
+          requested.damageType,
+          80,
+        ).trim(),
+
+      properties:
+        normalizedProperties(
+          requested.properties,
+        ),
+
+      versatileDamage:
+        editableText(
+          requested.versatileDamage,
+          40,
+        ).trim(),
+
+      isSimple:
+        Boolean(requested.isSimple),
+
+      isMartial:
+        Boolean(requested.isMartial),
+
+      attackType,
+
+      range:
+        normalizedRange(
+          requested.range,
+        ),
+
+      ammunitionType:
+        editableText(
+          requested.ammunitionType,
+          80,
+        )
+          .trim()
+          .toLowerCase(),
+
+      weight:
+        optionalNumber(
+          requested.weight,
+          {
+            minimum: 0,
+            maximum: 100000,
+          },
+        ) ?? 0,
+    };
+  }
+
+  if (kind === "armor") {
+    const category =
+      String(
+        requested.category
+        || "",
+      )
+        .trim()
+        .toLowerCase();
+
+    if (!ARMOR_CATEGORIES.has(category)) {
+      throw new Error(
+        "Armor category must be light, medium, heavy, or blank.",
+      );
+    }
+
+    const acBase =
+      optionalNumber(
+        requested.acBase,
+        {
+          minimum: 0,
+          maximum: 100,
+          integer: true,
+        },
+      );
+
+    if (acBase == null) {
+      throw new Error(
+        "Armor requires a base Armor Class.",
+      );
+    }
+
+    const dexterityCap =
+      optionalNumber(
+        requested.dexterityCap,
+        {
+          minimum: -20,
+          maximum: 20,
+          integer: true,
+        },
+      );
+
+    const strengthRequirement =
+      optionalNumber(
+        requested.strengthRequirement,
+        {
+          minimum: 0,
+          maximum: 30,
+          integer: true,
+        },
+      );
+
+    return {
+      ...requested,
+      kind: "armor",
+      acBase,
+      addDexterity:
+        Boolean(requested.addDexterity),
+      dexterityCap:
+        requested.addDexterity
+          ? dexterityCap
+          : null,
+      acBonus:
+        optionalNumber(
+          requested.acBonus,
+          {
+            minimum: -50,
+            maximum: 50,
+            integer: true,
+          },
+        ) ?? 0,
+      category,
+      strengthRequirement,
+      stealthDisadvantage:
+        Boolean(
+          requested.stealthDisadvantage,
+        ),
+    };
+  }
+
+  if (kind === "shield") {
+    return {
+      ...requested,
+      kind: "shield",
+      acBonus:
+        optionalNumber(
+          requested.acBonus,
+          {
+            minimum: -50,
+            maximum: 50,
+            integer: true,
+          },
+        ) ?? 2,
+      weight:
+        optionalNumber(
+          requested.weight,
+          {
+            minimum: 0,
+            maximum: 100000,
+          },
+        ) ?? 0,
+    };
+  }
+
+  if (kind === "ammunition") {
+    return {
+      ...requested,
+      kind: "ammunition",
+      ammunitionType:
+        editableText(
+          requested.ammunitionType,
+          80,
+        )
+          .trim()
+          .toLowerCase(),
+      weight:
+        optionalNumber(
+          requested.weight,
+          {
+            minimum: 0,
+            maximum: 100000,
+          },
+        ) ?? 0,
+    };
+  }
+
+  return null;
+}
+
+export function updateEquipmentItem(
+  character,
+  itemId,
+  patchValue,
+) {
+  const item = findItem(
+    character,
+    itemId,
+  );
+
+  if (
+    !patchValue
+    || typeof patchValue !== "object"
+    || Array.isArray(patchValue)
+  ) {
+    throw new Error(
+      "Equipment edit must be an object.",
+    );
+  }
+
+  const patch = {
+    ...patchValue,
+  };
+
+  const nextName =
+    patch.name == null
+      ? item.name
+      : editableText(
+          patch.name,
+          200,
+        ).trim();
+
+  if (!nextName) {
+    throw new Error(
+      "Inventory items require a name.",
+    );
+  }
+
+  const requestedKind =
+    patch.equipment?.kind
+    ?? item.equipment?.kind
+    ?? "item";
+
+  const normalizedEquipment =
+    normalizedEquipmentProfile(
+      item.equipment,
+      {
+        ...(patch.equipment || {}),
+        kind: requestedKind,
+        ...(String(requestedKind).toLowerCase() === "weapon"
+          ? {
+              name:
+                patch.equipment?.name
+                || nextName,
+            }
+          : {}),
+      },
+    );
+
+  const attackAbility =
+    String(
+      patch.attackAbility
+      ?? item.attackAbility
+      ?? "auto",
+    )
+      .trim()
+      .toLowerCase();
+
+  if (!ABILITY_OVERRIDES.has(attackAbility)) {
+    throw new Error(
+      "Attack ability override is not supported.",
+    );
+  }
+
+  const proficiencyOverride =
+    String(
+      patch.proficiencyOverride
+      ?? item.proficiencyOverride
+      ?? "auto",
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    !PROFICIENCY_OVERRIDES.has(
+      proficiencyOverride,
+    )
+  ) {
+    throw new Error(
+      "Proficiency override is not supported.",
+    );
+  }
+
+  const nextItem = {
+    ...item,
+    ...patch,
+
+    id: item.id,
+
+    name: nextName,
+
+    quantity:
+      patch.quantity == null
+        ? item.quantity
+        : Math.max(
+            0,
+            Math.trunc(
+              optionalNumber(
+                patch.quantity,
+                {
+                  minimum: 0,
+                  maximum: 9999,
+                  integer: true,
+                },
+              ) ?? 0,
+            ),
+          ),
+
+    detail:
+      patch.detail == null
+        ? item.detail
+        : editableText(
+            patch.detail,
+            20000,
+          ),
+
+    weight:
+      patch.weight == null
+        ? item.weight
+        : optionalNumber(
+            patch.weight,
+            {
+              minimum: 0,
+              maximum: 100000,
+            },
+          ) ?? 0,
+
+    attackBonus:
+      patch.attackBonus == null
+        ? item.attackBonus
+        : optionalNumber(
+            patch.attackBonus,
+            {
+              minimum: -99,
+              maximum: 99,
+              integer: true,
+            },
+          ) ?? 0,
+
+    damageBonus:
+      patch.damageBonus == null
+        ? item.damageBonus
+        : optionalNumber(
+            patch.damageBonus,
+            {
+              minimum: -99,
+              maximum: 99,
+              integer: true,
+            },
+          ) ?? 0,
+
+    magicBonus:
+      patch.magicBonus == null
+        ? item.magicBonus
+        : optionalNumber(
+            patch.magicBonus,
+            {
+              minimum: -99,
+              maximum: 99,
+              integer: true,
+            },
+          ) ?? 0,
+
+    attackAbility,
+
+    proficiencyOverride,
+
+    secondaryDamage:
+      patch.secondaryDamage == null
+        ? normalizedSecondaryDamage(
+            item.secondaryDamage,
+          )
+        : normalizedSecondaryDamage(
+            patch.secondaryDamage,
+          ),
+
+    provenance:
+      normalizeRecordProvenance({
+        ...item,
+        ...patch,
+        provenance:
+          patch.provenance
+          || item.provenance,
+      }),
+
+    ...(normalizedEquipment
+      ? {
+          equipment:
+            normalizedEquipment,
+        }
+      : {
+          equipment: undefined,
+        }),
+  };
+
+  if (
+    Number(nextItem.quantity || 0) === 0
+  ) {
+    nextItem.equipped = false;
+    nextItem.attuned = false;
+  }
+
+  const nextInventory =
+    changedInventory(
+      character,
+      itemId,
+      () => nextItem,
+    );
+
+  const state = {
+    ...character,
+    inventory: nextInventory,
+  };
+
+  const beforeSummary =
+    `${item.name} · ${item.equipment?.kind || "item"}`;
+
+  const afterSummary =
+    `${nextItem.name} · ${nextItem.equipment?.kind || "item"}`;
+
+  return withEquipmentHistory(
+    state,
+    `Edited ${nextItem.name}`,
+    `${beforeSummary} → ${afterSummary}`,
+    {
+      itemId,
+      item,
+    },
+    {
+      itemId,
+      item: nextItem,
+    },
+  );
+}
+
+export function setEquipmentReviewed(
+  character,
+  itemId,
+  reviewed = true,
+) {
+  const item = findItem(
+    character,
+    itemId,
+  );
+
+  const current =
+    normalizeRecordProvenance(item);
+
+  const nextReviewed =
+    Boolean(reviewed);
+
+  const nextProvenance = {
+    ...current,
+    reviewStatus:
+      nextReviewed
+        ? "reviewed"
+        : current.type === "canonical"
+          ? "trusted"
+          : "review-required",
+    reviewed:
+      nextReviewed,
+  };
+
+  if (
+    current.reviewStatus
+      === nextProvenance.reviewStatus
+    && Boolean(current.reviewed)
+      === nextReviewed
+  ) {
+    return character;
+  }
+
+  const nextInventory =
+    changedInventory(
+      character,
+      itemId,
+      (candidate) => ({
+        ...candidate,
+        provenance: nextProvenance,
+      }),
+    );
+
+  const state = {
+    ...character,
+    inventory: nextInventory,
+  };
+
+  return withEquipmentHistory(
+    state,
+    `${nextReviewed ? "Reviewed" : "Reopened"} ${item.name}`,
+    `${item.name}: ${current.reviewStatus} → ${nextProvenance.reviewStatus}`,
+    {
+      itemId,
+      provenance: current,
+    },
+    {
+      itemId,
+      provenance: nextProvenance,
+    },
+  );
+}
 export function itemWeight(item) {
   const ARMOR_WEIGHTS = { padded: 8, leather: 10, "studded leather": 13, hide: 12, "chain shirt": 20, "scale mail": 45, breastplate: 20, "half plate": 40, "ring mail": 40, "chain mail": 55, splint: 60, plate: 65, shield: 6 };
   const name = String(item?.name || "").toLowerCase().replace(/\s+armor$/, "").trim();
