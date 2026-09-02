@@ -1,11 +1,12 @@
 import { initialState } from "./seed.js";
 import { normalizeArmorCharacter } from "../domain/armor.js";
+import { normalizeCharacterProvenance } from "../domain/provenance.js";
 import { reconcileAbilityHistory } from "../domain/abilityHistory.js";
 
 export const STORAGE_KEY = "arcane-observatory-v1";
 export const TRANSACTION_KEY = `${STORAGE_KEY}-pending`;
 export const RECOVERY_KEY = `${STORAGE_KEY}-recovery`;
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 const clone = (value) => structuredClone(value);
 const list = (value) => Array.isArray(value) ? value : [];
@@ -42,7 +43,20 @@ function migrateV2ToV3(state) {
   };
 }
 
-export const MIGRATION_REGISTRY = Object.freeze({ 1: migrateV1ToV2, 2: migrateV2ToV3 });
+function migrateV3ToV4(state) {
+  return {
+    ...state,
+    schemaVersion: 4,
+    characters: list(state.characters)
+      .map(normalizeCharacterProvenance),
+  };
+}
+
+export const MIGRATION_REGISTRY = Object.freeze({
+  1: migrateV1ToV2,
+  2: migrateV2ToV3,
+  3: migrateV3ToV4,
+});
 
 export function migrateState(candidate) {
   if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) throw new Error("Backup is not a JSON object.");
@@ -69,7 +83,7 @@ function validateCurrentState(candidate) {
   }
   const ids = candidate.characters.map((character) => String(character.id));
   if (new Set(ids).size !== ids.length) throw new Error("Backup contains duplicate character ids.");
-  const characters = candidate.characters.map((character) => ({ ...character, sessionEntries: list(character.sessionEntries) })).map(reconcileAbilityHistory).map(normalizeArmorCharacter);
+  const characters = candidate.characters.map((character) => ({ ...character, sessionEntries: list(character.sessionEntries) })).map(normalizeCharacterProvenance).map(reconcileAbilityHistory).map(normalizeArmorCharacter);
   const activeCharacterId = ids.includes(String(candidate.activeCharacterId)) ? candidate.activeCharacterId : characters[0].id;
   return { ...candidate, activeCharacterId, characters };
 }

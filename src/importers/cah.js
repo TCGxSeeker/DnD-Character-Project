@@ -4,6 +4,10 @@ import { SKILL_DEFINITIONS } from "../domain/skills.js";
 import { SUBCLASS_RULES } from "../domain/progression.js";
 import { CLASS_RULES, abilityModifier, multiclassSpellSlots } from "../domain/rules.js";
 import { pactMagicForClassLevels } from "../domain/classResources2014.js";
+import {
+  abilityScoreGenerationRecord,
+  normalizeCharacterProvenance,
+} from "../domain/provenance.js";
 
 export const MAX_CAH_TEXT_LENGTH = 20 * 1024 * 1024;
 
@@ -335,7 +339,13 @@ export function normalizeCahCharacter(raw, { now = new Date().toISOString(), idF
     experience: Math.max(0, Math.trunc(number(raw.exp))),
     classLevels,
     levelHistory,
-    abilities,
+abilities,
+    abilityScoreGeneration: abilityScoreGenerationRecord({
+      method: "imported",
+      label: "Imported · 5e Companion",
+      baseScores: abilities,
+      finalScores: abilities,
+    }),
     hp: clamp(raw.hp, 0, maxHp),
     maxHp,
     tempHp: Math.max(0, Math.trunc(number(raw.tempHp))),
@@ -382,7 +392,7 @@ export function normalizeCahCharacter(raw, { now = new Date().toISOString(), idF
     updatedAt: importedAt,
   };
   return {
-    character,
+    character: normalizeCharacterProvenance(character),
     warnings: [...new Set(warnings)],
     summary: {
       name: character.name,

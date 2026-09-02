@@ -17,6 +17,10 @@ import {
   subclassRuleForClass,
 } from "../data/contentCatalog.js";
 import { calculateCharacterMaxHp } from "../domain/derivedMechanics.js";
+import {
+  abilityScoreGenerationRecord,
+  normalizeCharacterProvenance,
+} from "../domain/provenance.js";
 import { hitDicePools } from "../domain/multiclass.js";
 import { startingProficiencies } from "../data/startingProficiencies2014.js";
 
@@ -105,7 +109,16 @@ export function CharacterCreator({ activePacks = [], onClose, onCreate }) {
       advancement: form.advancement, experience: 0,
       classLevels: [{ classId: form.classId, level: 1, ...(form.subclassId ? { subclassId: form.subclassId, subclass: findSubclassOptionWithContent(form.classId, form.subclassId, activePacks)?.name } : {}) }],
       levelHistory: [{ level: 1, classId: form.classId, baseHp: rule.hitDie, hpMethod: "maximum", createdAt: now }],
-      abilities: finalAbilities, hp: baseMaxHp, maxHp: baseMaxHp, tempHp: 0,
+      abilities: finalAbilities,
+      abilityScoreGeneration: abilityScoreGenerationRecord({
+        method:
+          form.abilityMethod === "point-buy"
+            ? "point-buy"
+            : "manual",
+        baseScores: form.abilities,
+        finalScores: finalAbilities,
+      }),
+      hp: baseMaxHp, maxHp: baseMaxHp, tempHp: 0,
       armorClass: 10 + abilityModifier(finalAbilities.dexterity) + (ancestryRule.armorClassBonus || 0),
       unarmoredArmorClass: 10 + abilityModifier(finalAbilities.dexterity) + (ancestryRule.armorClassBonus || 0),
       armorClassBonuses: { ancestry: ancestryRule.armorClassBonus || 0, misc: 0 }, speed: ancestryDetails.speed || ancestryRule.speed,
@@ -130,7 +143,18 @@ export function CharacterCreator({ activePacks = [], onClose, onCreate }) {
       createdAt: now, updatedAt: now,
     };
     const maxHp = calculateCharacterMaxHp(createdCharacter);
-    onCreate({ ...createdCharacter, hp: maxHp, maxHp }, Number(form.startingLevel));
+
+    const normalizedCharacter =
+      normalizeCharacterProvenance({
+        ...createdCharacter,
+        hp: maxHp,
+        maxHp,
+      });
+
+    onCreate(
+      normalizedCharacter,
+      Number(form.startingLevel),
+    );
     onClose();
   }
 
