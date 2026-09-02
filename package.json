@@ -1,6 +1,6 @@
 {
   "name": "arcane-observatory",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "A local-first D&D 5e character studio and level-up companion.",
   "author": "Arcane Observatory contributors",
   "private": true,

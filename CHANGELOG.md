@@ -4,6 +4,8 @@ All notable release changes are recorded here.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-09-01
+
 ### Added
 
 - A defensive 5e Companion `.cah` ingestion lane with content detection, compatibility mapping, review warnings, and one-character native import.
