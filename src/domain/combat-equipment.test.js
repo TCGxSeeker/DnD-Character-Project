@@ -197,6 +197,22 @@
     assert.equal(result.attacksPerAction, 2);
     assert.deepEqual(result.attacks.map((entry) => [entry.attackBonus, entry.damage]), [[7, "1d8 + 4"], [8, "1d8 + 3"]]);
   });
+  test("explicit and magic weapon bonuses combine without changing ordinary attacks", () => {
+    const cases = [
+      { label: "ordinary", bonuses: {}, attackBonus: 7, damage: "1d8 + 4" },
+      { label: "magic with explicit zeroes", bonuses: { attackBonus: 0, damageBonus: 0, magicBonus: 2 }, attackBonus: 9, damage: "1d8 + 6" },
+      { label: "explicit and magic", bonuses: { attackBonus: 1, damageBonus: 3, magicBonus: 2 }, attackBonus: 10, damage: "1d8 + 9" },
+    ];
+
+    cases.forEach(({ label, bonuses, attackBonus, damage }) => {
+      const item = { ...weapon("Longsword"), ...bonuses };
+      const result = attackSummary({ ...fighter, inventory: [item] }).attacks[0];
+      assert.equal(result.attackBonus, attackBonus, `${label} attack bonus`);
+      assert.equal(result.damage, damage, `${label} damage`);
+      assert.equal(result.ability, "strength", `${label} attack ability`);
+      assert.equal(result.proficient, true, `${label} proficiency`);
+    });
+  });
   test("legacy characters derive missing weapon proficiencies from their original class", () => {
     const legacyFighter = { abilities: { strength: 12, dexterity: 16 }, classLevels: [{ classId: "fighter", level: 5 }], inventory: [weapon("Longbow", true)] };
     const legacyDruid = { abilities: { strength: 14, dexterity: 10 }, classLevels: [{ classId: "druid", level: 7 }], inventory: [{ id: "staff", name: "Quarterstaff", quantity: 1, equipped: true }] };
@@ -284,7 +300,7 @@
 {
   const { default: test } = await import("node:test");
   const { default: assert } = await import("node:assert/strict");
-  const { ammunitionSummary, attunementSummary, carryingSummary, consumeAmmunition, setEquipmentAttuned, setEquipmentEquipped, setEquipmentQuantity, setVariantEncumbrance } = await import("./equipment.js");
+  const { ammunitionSummary, attunementSummary, carryingSummary, consumeAmmunition, createCustomEquipmentItem, setEquipmentAttuned, setEquipmentEquipped, setEquipmentQuantity, setVariantEncumbrance, updateEquipmentItem } = await import("./equipment.js");
 
 
   const base = {
@@ -319,6 +335,36 @@
     assert.equal(heavy.speedPenalty, 20);
     assert.deepEqual(heavy.disadvantages.savingThrows, ["strength", "dexterity", "constitution"]);
     assert.strictEqual(setVariantEncumbrance(enabled, true), enabled);
+  });
+
+  test("custom equipment creation and edits produce one History event per meaningful action", () => {
+    const patch = {
+      name: "Moonblade",
+      quantity: "1",
+      detail: "A custom weapon.",
+      weight: "3",
+      attackAbility: "auto",
+      proficiencyOverride: "auto",
+      attackBonus: "0",
+      damageBonus: "0",
+      magicBonus: "1",
+      secondaryDamage: [],
+      equipment: { kind: "weapon", name: "Moonblade", damageDice: "1d8", damageType: "radiant", properties: [] },
+    };
+    const created = createCustomEquipmentItem({ ...base, inventory: [], history: [] }, "custom-moonblade", patch);
+
+    assert.equal(created.history.length, 1);
+    assert.equal(created.history[0].type, "item-added");
+    assert.equal(created.inventory[0].name, "Moonblade");
+
+    const noOp = updateEquipmentItem(created, "custom-moonblade", patch);
+    assert.strictEqual(noOp, created);
+    assert.equal(noOp.history.length, 1);
+
+    const edited = updateEquipmentItem(created, "custom-moonblade", { ...patch, name: "Moonblade Awakened" });
+    assert.equal(edited.history.length, 2);
+    assert.equal(edited.history[0].type, "equipment-changed");
+    assert.equal(edited.inventory[0].name, "Moonblade Awakened");
   });
 
   test("equipping body armor replaces the previously equipped body armor", () => {

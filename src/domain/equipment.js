@@ -509,10 +509,69 @@ function normalizedEquipmentProfile(
   return null;
 }
 
+function stableValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(stableValue);
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.keys(value)
+        .filter((key) => value[key] !== undefined)
+        .sort()
+        .map((key) => [key, stableValue(value[key])]),
+    );
+  }
+
+  return value;
+}
+
+function editableEquipmentSnapshot(item) {
+  const name = editableText(item?.name, 200).trim();
+  const quantity = Math.max(
+    0,
+    Math.trunc(optionalNumber(item?.quantity ?? 1, {
+      minimum: 0,
+      maximum: 9999,
+      integer: true,
+    }) ?? 0),
+  );
+  const requestedKind = item?.equipment?.kind ?? "item";
+  const equipment = normalizedEquipmentProfile(
+    item?.equipment,
+    {
+      ...(item?.equipment || {}),
+      kind: requestedKind,
+      ...(String(requestedKind).toLowerCase() === "weapon"
+        ? { name: item?.equipment?.name || name }
+        : {}),
+    },
+  );
+
+  return stableValue({
+    ...item,
+    name,
+    quantity,
+    detail: editableText(item?.detail, 20000),
+    weight: optionalNumber(item?.weight, { minimum: 0, maximum: 100000 }) ?? 0,
+    attackBonus: optionalNumber(item?.attackBonus, { minimum: -99, maximum: 99, integer: true }) ?? 0,
+    damageBonus: optionalNumber(item?.damageBonus, { minimum: -99, maximum: 99, integer: true }) ?? 0,
+    magicBonus: optionalNumber(item?.magicBonus, { minimum: -99, maximum: 99, integer: true }) ?? 0,
+    attackAbility: String(item?.attackAbility || "auto").trim().toLowerCase(),
+    proficiencyOverride: String(item?.proficiencyOverride || "auto").trim().toLowerCase(),
+    secondaryDamage: normalizedSecondaryDamage(item?.secondaryDamage),
+    provenance: normalizeRecordProvenance(item),
+    equipment: equipment || undefined,
+    equipped: quantity === 0 ? false : Boolean(item?.equipped),
+    attuned: quantity === 0 ? false : Boolean(item?.attuned),
+  });
+}
+
 export function updateEquipmentItem(
   character,
   itemId,
   patchValue,
+  options = {},
 ) {
   const item = findItem(
     character,
@@ -721,6 +780,13 @@ export function updateEquipmentItem(
     nextItem.attuned = false;
   }
 
+  if (
+    JSON.stringify(editableEquipmentSnapshot(item))
+      === JSON.stringify(editableEquipmentSnapshot(nextItem))
+  ) {
+    return character;
+  }
+
   const nextInventory =
     changedInventory(
       character,
@@ -739,6 +805,10 @@ export function updateEquipmentItem(
   const afterSummary =
     `${nextItem.name} · ${nextItem.equipment?.kind || "item"}`;
 
+  if (options.recordHistory === false) {
+    return state;
+  }
+
   return withEquipmentHistory(
     state,
     `Edited ${nextItem.name}`,
@@ -752,6 +822,66 @@ export function updateEquipmentItem(
       item: nextItem,
     },
   );
+}
+
+export function createCustomEquipmentItem(
+  character,
+  itemId,
+  patchValue,
+) {
+  if (!String(itemId || "").trim()) {
+    throw new Error("Custom inventory items require an id.");
+  }
+
+  if (inventory(character).some((item) => item.id === itemId)) {
+    throw new Error(`Inventory item already exists: ${itemId}.`);
+  }
+
+  const baseItem = {
+    id: itemId,
+    name: "New Custom Item",
+    quantity: 1,
+    detail: "",
+    weight: 0,
+    equipped: false,
+    attuned: false,
+    attackAbility: "auto",
+    proficiencyOverride: "auto",
+    attackBonus: 0,
+    damageBonus: 0,
+    magicBonus: 0,
+    secondaryDamage: [],
+    equipment: { kind: "item" },
+    provenance: {
+      type: "custom",
+      source: "Custom",
+      reviewStatus: "reviewed",
+      reviewed: true,
+    },
+  };
+
+  const normalized = updateEquipmentItem(
+    {
+      ...character,
+      inventory: [...inventory(character), baseItem],
+    },
+    itemId,
+    patchValue,
+    { recordHistory: false },
+  );
+  const created = findItem(normalized, itemId);
+
+  return appendHistoryEvent(normalized, {
+    type: "item-added",
+    title: `Created ${created.name}`,
+    detail: "Custom inventory item created",
+    changes: { itemsAdded: [created.name] },
+    stateChanges: [{
+      category: "equipment",
+      before: null,
+      after: { itemId, item: created },
+    }],
+  });
 }
 
 export function setEquipmentReviewed(

@@ -15,9 +15,18 @@ export const RECORD_REVIEW_STATUSES = Object.freeze([
 export const ABILITY_SCORE_METHODS = Object.freeze([
   "manual",
   "point-buy",
+  "rolled",
   "imported",
   "legacy",
 ]);
+
+const ABILITY_SCORE_DISPLAY_LABELS = Object.freeze({
+  manual: "Manual",
+  "point-buy": "Point Buy",
+  rolled: "Rolled",
+  imported: "Imported",
+  legacy: "Unrecorded",
+});
 
 const record = (value) =>
   value && typeof value === "object" && !Array.isArray(value)
@@ -186,9 +195,11 @@ export function normalizeAbilityScoreGeneration(
         ? "Manual"
         : method === "point-buy"
           ? "2014 Point Buy"
-          : method === "imported"
-            ? "Imported"
-            : "Unrecorded"
+          : method === "rolled"
+            ? "Rolled"
+            : method === "imported"
+              ? "Imported"
+              : "Unrecorded"
     );
 
   return {
@@ -212,6 +223,25 @@ export function normalizeAbilityScoreGeneration(
         : character.abilities,
     ),
   };
+}
+
+export function abilityScoreGenerationDisplay(characterValue) {
+  const normalized = normalizeAbilityScoreGeneration(characterValue);
+
+  return {
+    ...normalized,
+    label:
+      ABILITY_SCORE_DISPLAY_LABELS[normalized.method]
+      || ABILITY_SCORE_DISPLAY_LABELS.legacy,
+  };
+}
+
+export function creationAbilityScoreMethod(method) {
+  if (method === "point-buy" || method === "rolled") {
+    return method;
+  }
+
+  return "manual";
 }
 
 export function normalizeCharacterProvenance(
@@ -248,6 +278,7 @@ export function abilityScoreGenerationRecord({
   baseScores,
   finalScores,
   label = "",
+  rolled,
 } = {}) {
   if (!ABILITY_SCORE_METHODS.includes(method)) {
     throw new Error(
@@ -265,15 +296,30 @@ export function abilityScoreGenerationRecord({
           ? "Manual"
           : method === "point-buy"
             ? "2014 Point Buy"
-            : method === "imported"
-              ? "Imported"
-              : "Unrecorded"
+            : method === "rolled"
+              ? "Rolled"
+              : method === "imported"
+                ? "Imported"
+                : "Unrecorded"
       ),
 
     baseScores: cloneScores(baseScores),
 
     finalScores: cloneScores(
       finalScores || baseScores,
+    ),
+
+    ...(
+      method === "rolled"
+      && rolled
+      && typeof rolled === "object"
+      && !Array.isArray(rolled)
+        ? {
+            rolled: {
+              ...rolled,
+            },
+          }
+        : {}
     ),
   };
 }

@@ -36,6 +36,125 @@
   });
 }
 
+// Content persistence ordering and desktop-file recovery remain in the broad
+// catalog/storage suite because both protect the same repository contract.
+{
+  const { default: test } = await import("node:test");
+  const { default: assert } = await import("node:assert/strict");
+  const { mkdtemp, readFile, rm, unlink, writeFile } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { createLatestContentPersistenceQueue } = await import("./contentPersistence.js");
+  const { createContentRepository } = await import("../importers/content/contentRepository.js");
+  const {
+    loadContentRepositoryFile,
+    saveContentRepositoryFile,
+  } = await import("../../desktop/contentRepositoryFile.mjs");
+
+  function deferred() {
+    let resolve;
+    let reject;
+    const promise = new Promise((onResolve, onReject) => {
+      resolve = onResolve;
+      reject = onReject;
+    });
+    return { promise, resolve, reject };
+  }
+
+  test("content persistence serializes writes and coalesces to the latest logical state", async () => {
+    const saves = [];
+    const enqueue = createLatestContentPersistenceQueue(async (repository) => {
+      const completion = deferred();
+      saves.push({ repository, completion });
+      await completion.promise;
+      return repository;
+    });
+
+    const first = enqueue({ revision: 1 }, "indexeddb");
+    const second = enqueue({ revision: 2 }, "indexeddb");
+    const latest = enqueue({ revision: 3 }, "indexeddb");
+
+    assert.deepEqual(saves.map(({ repository }) => repository.revision), [1]);
+    saves[0].completion.resolve();
+    await first;
+    await Promise.resolve();
+    assert.deepEqual(saves.map(({ repository }) => repository.revision), [1, 3]);
+    saves[1].completion.resolve();
+    await Promise.all([second, latest]);
+  });
+
+  test("content persistence surfaces a save failure and accepts a later update", async () => {
+    let attempt = 0;
+    const enqueue = createLatestContentPersistenceQueue(async (repository) => {
+      attempt += 1;
+      if (attempt === 1) throw new Error("storage unavailable");
+      return repository;
+    });
+
+    await assert.rejects(enqueue({ revision: 1 }, "filesystem"), /storage unavailable/);
+    assert.deepEqual(await enqueue({ revision: 2 }, "filesystem"), { revision: 2 });
+  });
+
+  test("desktop repository replacement keeps a readable backup and recovers from damage", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "arcane-content-"));
+    const filePath = join(directory, "content", "repository.json");
+    const original = JSON.stringify(createContentRepository());
+    const updated = JSON.stringify({ ...createContentRepository(), updatedMarker: true });
+
+    try {
+      await saveContentRepositoryFile(filePath, original, { maxBytes: 1024 * 1024 });
+      await saveContentRepositoryFile(filePath, updated, { maxBytes: 1024 * 1024 });
+
+      assert.equal(await readFile(filePath, "utf8"), updated);
+      assert.equal(await readFile(`${filePath}.bak`, "utf8"), original);
+
+      await writeFile(filePath, "corrupt", "utf8");
+      const recovered = await loadContentRepositoryFile(filePath);
+      assert.equal(recovered.recoveredFromBackup, true);
+      assert.equal(recovered.repositoryJson, original);
+
+      await unlink(filePath);
+      const recoveredMissing = await loadContentRepositoryFile(filePath);
+      assert.equal(recoveredMissing.recoveredFromBackup, true);
+      assert.equal(recoveredMissing.repositoryJson, original);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  test("desktop repository loading falls back when primary JSON fails schema validation", async () => {
+    const previousWindow = globalThis.window;
+    const repository = createContentRepository();
+
+    globalThis.window = {
+      arcaneObservatoryContent: {
+        available: true,
+        loadRepository: async () => ({
+          exists: true,
+          repositoryJson: JSON.stringify({ kind: "wrong-repository" }),
+          backupRepositoryJson: JSON.stringify(repository),
+        }),
+        saveRepository: async () => ({ saved: true }),
+        clearRepository: async () => ({ cleared: true }),
+        getStorageInfo: async () => ({ kind: "filesystem" }),
+      },
+    };
+
+    try {
+      const { loadDesktopContentRepository } = await import("./desktopContentStorage.js");
+      const loaded = await loadDesktopContentRepository();
+      assert.deepEqual(loaded.repository, repository);
+      assert.equal(loaded.recoveredFromBackup, true);
+    } finally {
+      if (previousWindow === undefined) {
+        delete globalThis.window;
+      } else {
+        globalThis.window = previousWindow;
+      }
+    }
+  });
+}
+
 // Third-party character ingestion stays in this broad catalog/storage suite so
 // every supported file lane is verified against the same native state contract.
 {
@@ -197,6 +316,7 @@
   const { default: test } = await import("node:test");
   const { default: assert } = await import("node:assert/strict");
   const { cloneInitialState, exportState, importState, loadState, migrateState, RECOVERY_KEY, restoreStateSafely, saveState, SCHEMA_VERSION, STORAGE_KEY, TRANSACTION_KEY } = await import("./store.js");
+  const { abilityScoreGenerationRecord } = await import("../domain/provenance.js");
 
 
   function memoryStorage() {
@@ -210,6 +330,36 @@
     saveState(state, storage);
     assert.ok(storage.getItem(STORAGE_KEY));
     assert.equal(loadState(storage).characters[0].name, "Vaelithra");
+  });
+
+  test("rolled ability provenance survives native save and reload normalization", () => {
+    const storage = memoryStorage();
+    const state = cloneInitialState();
+    const character = state.characters[0];
+    const rolled = {
+      rule: "4d6-reroll-ones-drop-lowest",
+      sets: [{ totals: [15, 14, 13, 12, 10, 9] }, { totals: [16, 14, 12, 11, 10, 8] }],
+      selectedSetIndex: 1,
+      dumpIndex: 5,
+      assignment: { strength: 0, dexterity: 1, constitution: 2, intelligence: 3, wisdom: 4, charisma: 5 },
+    };
+    const withRolled = {
+      ...state,
+      characters: [{
+        ...character,
+        abilityScoreGeneration: abilityScoreGenerationRecord({
+          method: "rolled",
+          baseScores: character.abilities,
+          finalScores: character.abilities,
+          rolled,
+        }),
+      }, ...state.characters.slice(1)],
+    };
+
+    saveState(withRolled, storage);
+    const loaded = loadState(storage).characters[0].abilityScoreGeneration;
+    assert.equal(loaded.method, "rolled");
+    assert.deepEqual(loaded.rolled, rolled);
   });
 
   test("backup import validates the schema", () => {

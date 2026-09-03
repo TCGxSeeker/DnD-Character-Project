@@ -1,9 +1,17 @@
 import { ArrowLeft, ArrowRight, Backpack, DiceFive, Info, UserPlus } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal } from "../components/Modal.jsx";
 import { Stepper } from "../components/Stepper.jsx";
 import { CLASS_RULES, ABILITIES, abilityModifier } from "../domain/rules.js";
 import { applyFixedAbilityAdjustments, levelOneHitPoints, pointBuyRemaining, validateCreationAbilities, validatePointBuy } from "../domain/creation.js";
+import {
+  assignRolledAbilities,
+  createAbilityRollSession,
+  selectAbilityRollSet,
+  selectedRolledValues,
+  setAbilityDumpIndex,
+  validateRolledAssignment,
+} from "../domain/abilityRolls.js";
 import { ANCESTRY_GROUPS, ancestryDisplayName, findAncestry } from "../data/ancestries.js";
 import { BACKGROUNDS_2014, findBackground } from "../data/backgrounds2014.js";
 import { ancestryCreationDetails, CLASS_CREATION_DETAILS, equipmentChoicesForClass, startingEquipmentForClass, startingWeaponSubstitutionSlots } from "../data/creationCatalog2014.js";
@@ -19,6 +27,7 @@ import {
 import { calculateCharacterMaxHp } from "../domain/derivedMechanics.js";
 import {
   abilityScoreGenerationRecord,
+  creationAbilityScoreMethod,
   normalizeCharacterProvenance,
 } from "../domain/provenance.js";
 import { hitDicePools } from "../domain/multiclass.js";
@@ -27,14 +36,76 @@ import { startingProficiencies } from "../data/startingProficiencies2014.js";
 const steps = ["Identity", "Class & level", "Ability scores"];
 const defaultAbilities = { strength: 10, dexterity: 14, constitution: 14, intelligence: 12, wisdom: 16, charisma: 10 };
 
+const defaultRolledAssignment = Object.freeze({
+  strength: null,
+  dexterity: null,
+  constitution: null,
+  intelligence: null,
+  wisdom: null,
+  charisma: null,
+});
+
 function Modifier({ amount }) {
   if (!amount) return null;
   return <b className={amount > 0 ? "positive" : "negative"}>{amount > 0 ? "+" : ""}{amount} ancestry</b>;
 }
 
+const DIE_PIPS = Object.freeze({
+  1: [4],
+  2: [0, 8],
+  3: [0, 4, 8],
+  4: [0, 2, 6, 8],
+  5: [0, 2, 4, 6, 8],
+  6: [0, 2, 3, 5, 6, 8],
+});
+
+function RollDie({
+  value,
+  rolling = false,
+  reaction = "",
+  dropped = false,
+}) {
+  const pips =
+    DIE_PIPS[value]
+    || [0, 2, 4, 6, 8];
+
+  return <div
+    className={`arcane-roll-die ${rolling ? "rolling" : ""} ${reaction} ${dropped ? "dropped" : ""}`}
+    aria-label={
+      rolling
+        ? "Rolling die"
+        : dropped
+          ? `${value}, dropped`
+          : `Rolled ${value}`
+    }
+  >
+    <div className="arcane-roll-die-face">
+      {Array.from({ length: 9 }, (_, index) =>
+        <span
+          key={index}
+          className={
+            pips.includes(index)
+              ? "arcane-die-pip visible"
+              : "arcane-die-pip"
+          }
+        />
+      )}
+    </div>
+  </div>;
+}
+
 export function CharacterCreator({ activePacks = [], onClose, onCreate }) {
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState({ name: "", ancestryId: "human", ancestryOptionId: "standard", backgroundId: "acolyte", classId: "druid", subclassId: "", advancement: "milestone", startingLevel: 1, abilityMethod: "manual", equipmentSelections: {}, weaponSubstitutions: {}, classSkills: ["Arcana", "Animal Handling"], classChoiceSelections: {}, abilities: defaultAbilities });
+  const [selectedRollIndex, setSelectedRollIndex] = useState(null);
+  const [draggedRollIndex, setDraggedRollIndex] = useState(null);
+  const [rollReveal, setRollReveal] = useState({
+    status: "idle",
+    candidateIndex: 0,
+    historyIndex: 0,
+    cycleTick: 0,
+    phase: "tumble",
+  });
+  const [form, setForm] = useState({ name: "", ancestryId: "human", ancestryOptionId: "standard", backgroundId: "acolyte", classId: "druid", subclassId: "", advancement: "milestone", startingLevel: 1, abilityMethod: "manual", rollSession: null, rollAssignment: { ...defaultRolledAssignment }, equipmentSelections: {}, weaponSubstitutions: {}, classSkills: ["Arcana", "Animal Handling"], classChoiceSelections: {}, abilities: defaultAbilities });
   const rule = CLASS_RULES[form.classId];
   const classDetails = CLASS_CREATION_DETAILS[form.classId];
   const ancestryRule = findAncestry(form.ancestryId);
@@ -45,10 +116,229 @@ export function CharacterCreator({ activePacks = [], onClose, onCreate }) {
   const subclassRule = subclassRuleForClass(form.classId, activePacks);
   const levelOneSubclass = subclassRule?.level === 1 ? subclassRule : null;
   const availableClassSkills = classChoices.skills.options.filter((skill) => !background.skills.includes(skill));
-  const finalAbilities = applyFixedAbilityAdjustments(form.abilities, ancestryDetails.fixedAdjustments);
-  const pointBuyValid = form.abilityMethod !== "point-buy" || validatePointBuy(form.abilities);
-  const abilitiesValid = pointBuyValid && validateCreationAbilities(form.abilities, ancestryDetails.fixedAdjustments);
-  const pointsRemaining = pointBuyRemaining(form.abilities);
+  const rolledReady =
+    form.abilityMethod !== "rolled"
+    || (
+      Number.isInteger(form.rollSession?.selectedSetIndex)
+      && validateRolledAssignment(form.rollAssignment)
+    );
+
+  const baseAbilities =
+    form.abilityMethod === "rolled" && rolledReady
+      ? assignRolledAbilities(
+          form.rollSession,
+          form.rollAssignment,
+        )
+      : form.abilities;
+
+  const finalAbilities =
+    applyFixedAbilityAdjustments(
+      baseAbilities,
+      ancestryDetails.fixedAdjustments,
+    );
+
+  const pointBuyValid =
+    form.abilityMethod !== "point-buy"
+    || validatePointBuy(form.abilities);
+
+  const abilitiesValid =
+    pointBuyValid
+    && rolledReady
+    && validateCreationAbilities(
+      baseAbilities,
+      ancestryDetails.fixedAdjustments,
+    );
+
+  const pointsRemaining =
+    pointBuyRemaining(form.abilities);
+
+  const rolledValues =
+    form.abilityMethod === "rolled"
+    && Number.isInteger(
+      form.rollSession?.selectedSetIndex,
+    )
+      ? selectedRolledValues(form.rollSession)
+      : [];
+
+  const rollCeremonyComplete =
+    rollReveal.status === "complete";
+
+  function beginRollReveal() {
+    const reduceMotion =
+      typeof window !== "undefined"
+      && typeof window.matchMedia === "function"
+      && window
+        .matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        )
+        .matches;
+
+    setRollReveal(
+      reduceMotion
+        ? {
+            status: "complete",
+            candidateIndex: 5,
+            historyIndex: 0,
+            cycleTick: 0,
+            phase: "total",
+          }
+        : {
+            status: "running",
+            candidateIndex: 0,
+            historyIndex: 0,
+            cycleTick: 0,
+            phase: "tumble",
+          },
+    );
+  }
+
+  function skipRollReveal() {
+    setRollReveal({
+      status: "complete",
+      candidateIndex: 5,
+      historyIndex: 0,
+      cycleTick: 0,
+      phase: "total",
+    });
+  }
+
+  useEffect(() => {
+    if (
+      form.abilityMethod !== "rolled"
+      || !form.rollSession
+      || rollReveal.status !== "running"
+    ) {
+      return undefined;
+    }
+
+    const candidateIndex =
+      Math.min(
+        rollReveal.candidateIndex,
+        5,
+      );
+
+    const histories =
+      form.rollSession.sets.flatMap(
+        (set) =>
+          set.candidates[candidateIndex]
+            ?.dice
+            ?.map(
+              (die) =>
+                Array.isArray(die.history)
+                  ? die.history
+                  : [die.value],
+            )
+          || [],
+      );
+
+    const maxHistoryLength =
+      Math.max(
+        1,
+        ...histories.map(
+          (history) => history.length,
+        ),
+      );
+
+    let delay = 400;
+    let nextReveal;
+
+    if (rollReveal.phase === "tumble") {
+      const finalCycleTick = 5;
+
+      if (rollReveal.cycleTick < finalCycleTick) {
+        delay = 300;
+
+        nextReveal = {
+          ...rollReveal,
+          cycleTick:
+            rollReveal.cycleTick + 1,
+        };
+      } else {
+        delay = 340;
+
+        nextReveal = {
+          ...rollReveal,
+          cycleTick: 0,
+          phase: "result",
+        };
+      }
+    } else if (
+      rollReveal.phase === "result"
+    ) {
+      delay = 920;
+
+      if (
+        rollReveal.historyIndex + 1
+        < maxHistoryLength
+      ) {
+        nextReveal = {
+          ...rollReveal,
+          historyIndex:
+            rollReveal.historyIndex + 1,
+          cycleTick: 0,
+          phase: "tumble",
+        };
+      } else {
+        nextReveal = {
+          ...rollReveal,
+          phase: "drop",
+        };
+      }
+    } else if (
+      rollReveal.phase === "drop"
+    ) {
+      delay = 820;
+
+      nextReveal = {
+        ...rollReveal,
+        phase: "total",
+      };
+    } else {
+      // This is intentionally the longest beat:
+      // surviving dice consolidate, equation resolves,
+      // and the final score visibly locks in.
+      delay = 1750;
+
+      if (candidateIndex >= 5) {
+        nextReveal = {
+          status: "complete",
+          candidateIndex: 5,
+          historyIndex: 0,
+          cycleTick: 0,
+          phase: "total",
+        };
+      } else {
+        nextReveal = {
+          status: "running",
+          candidateIndex:
+            candidateIndex + 1,
+          historyIndex: 0,
+          cycleTick: 0,
+          phase: "tumble",
+        };
+      }
+    }
+
+    const timer =
+      window.setTimeout(
+        () => {
+          setRollReveal(
+            (current) =>
+              current.status === "running"
+                ? nextReveal
+                : current,
+          );
+        },
+        delay,
+      );
+
+    return () =>
+      window.clearTimeout(timer);
+  }, [
+    form.abilityMethod,
+    form.rollSession,
+    rollReveal,
+  ]);
   const equipmentChoices = equipmentChoicesForClass(form.classId);
   const weaponSubstitutionSlots = startingWeaponSubstitutionSlots(form.classId, form.equipmentSelections);
   const equipment = startingEquipmentForClass(form.classId, form.equipmentSelections, form.weaponSubstitutions);
@@ -78,6 +368,174 @@ export function CharacterCreator({ activePacks = [], onClose, onCreate }) {
     setForm((current) => ({ ...current, classSkills: current.classSkills.map((entry, currentIndex) => currentIndex === index ? skill : entry) }));
   }
 
+  function selectAbilityMethod(method) {
+    if (method === "point-buy") {
+      setForm((current) => ({
+        ...current,
+        abilityMethod: "point-buy",
+        abilities: {
+          strength: 8,
+          dexterity: 8,
+          constitution: 8,
+          intelligence: 8,
+          wisdom: 8,
+          charisma: 8,
+        },
+      }));
+
+      return;
+    }
+
+    if (method === "rolled") {
+      const needsSession =
+        !form.rollSession;
+
+      const session =
+        form.rollSession
+        || createAbilityRollSession();
+
+      if (needsSession) {
+        setRollReveal({
+          status: "ready",
+          candidateIndex: 0,
+          historyIndex: 0,
+          cycleTick: 0,
+          phase: "tumble",
+        });
+      }
+
+      setForm((current) => ({
+        ...current,
+        abilityMethod: "rolled",
+        rollSession:
+          current.rollSession
+          || session,
+        rollAssignment:
+          current.rollAssignment
+          || { ...defaultRolledAssignment },
+      }));
+
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      abilityMethod: "manual",
+    }));
+  }
+
+  function chooseRolledSet(setIndex) {
+    if (!rollCeremonyComplete) {
+      return;
+    }
+
+    setSelectedRollIndex(null);
+    setDraggedRollIndex(null);
+
+    setForm((current) => ({
+      ...current,
+      rollSession:
+        selectAbilityRollSet(
+          current.rollSession,
+          setIndex,
+        ),
+      rollAssignment: {
+        ...defaultRolledAssignment,
+      },
+    }));
+  }
+
+  function chooseDumpStat(dumpIndex) {
+    setForm((current) => ({
+      ...current,
+      rollSession:
+        setAbilityDumpIndex(
+          current.rollSession,
+          dumpIndex,
+        ),
+    }));
+  }
+
+  function placeRolledValue(
+    ability,
+    rollIndex,
+  ) {
+    const index = Number(rollIndex);
+
+    if (
+      !Number.isInteger(index)
+      || index < 0
+      || index >= 6
+    ) {
+      return;
+    }
+
+    setForm((current) => {
+      const nextAssignment = {
+        ...current.rollAssignment,
+      };
+
+      const currentOwner =
+        ABILITIES.find(
+          (candidate) =>
+            nextAssignment[candidate] === index,
+        );
+
+      if (currentOwner) {
+        nextAssignment[currentOwner] = null;
+      }
+
+      // The incoming score takes the destination.
+      // Any displaced score becomes unused again and
+      // therefore naturally returns to the pool.
+      nextAssignment[ability] = index;
+
+      return {
+        ...current,
+        rollAssignment: nextAssignment,
+      };
+    });
+
+    setSelectedRollIndex(null);
+    setDraggedRollIndex(null);
+  }
+
+  function clearRolledAbility(ability) {
+    setForm((current) => ({
+      ...current,
+      rollAssignment: {
+        ...current.rollAssignment,
+        [ability]: null,
+      },
+    }));
+  }
+
+  function activateRolledValue(index) {
+    setSelectedRollIndex((current) =>
+      current === index
+        ? null
+        : index
+    );
+  }
+
+  function handleAbilitySlotClick(ability) {
+    if (Number.isInteger(selectedRollIndex)) {
+      placeRolledValue(
+        ability,
+        selectedRollIndex,
+      );
+
+      return;
+    }
+
+    const assignedIndex =
+      form.rollAssignment[ability];
+
+    if (Number.isInteger(assignedIndex)) {
+      setSelectedRollIndex(assignedIndex);
+      clearRolledAbility(ability);
+    }
+  }
   function toggleCreationChoice(choice, option) {
     setForm((current) => {
       const selected = current.classChoiceSelections[choice.id] || [];
@@ -111,12 +569,25 @@ export function CharacterCreator({ activePacks = [], onClose, onCreate }) {
       levelHistory: [{ level: 1, classId: form.classId, baseHp: rule.hitDie, hpMethod: "maximum", createdAt: now }],
       abilities: finalAbilities,
       abilityScoreGeneration: abilityScoreGenerationRecord({
-        method:
-          form.abilityMethod === "point-buy"
-            ? "point-buy"
-            : "manual",
-        baseScores: form.abilities,
+        method: creationAbilityScoreMethod(form.abilityMethod),
+        baseScores: baseAbilities,
         finalScores: finalAbilities,
+        rolled:
+          form.abilityMethod === "rolled"
+            ? {
+                rule:
+                  form.rollSession.rule,
+                sets:
+                  form.rollSession.sets,
+                selectedSetIndex:
+                  form.rollSession.selectedSetIndex,
+                dumpIndex:
+                  form.rollSession.dumpIndex,
+                assignment: {
+                  ...form.rollAssignment,
+                },
+              }
+            : undefined,
       }),
       hp: baseMaxHp, maxHp: baseMaxHp, tempHp: 0,
       armorClass: 10 + abilityModifier(finalAbilities.dexterity) + (ancestryRule.armorClassBonus || 0),
@@ -193,11 +664,481 @@ export function CharacterCreator({ activePacks = [], onClose, onCreate }) {
         </section>}
 
         {step === 2 && <section className="creator-step form-section">
-          <div><p className="section-kicker">Step 3 · Set the foundation</p><h3>Ability scores</h3><p className="form-intro">Enter pre-ancestry scores. Fixed ancestry adjustments are applied automatically and shown as a final preview.</p></div>
-          <div className="ability-method-options" role="group" aria-label="Ability score method"><button type="button" className={form.abilityMethod === "manual" ? "selected" : ""} onClick={() => setForm({ ...form, abilityMethod: "manual" })}><strong>Manual scores</strong><small>Enter rolled, array, or house-rule values</small></button><button type="button" className={form.abilityMethod === "point-buy" ? "selected" : ""} onClick={() => setForm({ ...form, abilityMethod: "point-buy", abilities: { strength: 8, dexterity: 8, constitution: 8, intelligence: 8, wisdom: 8, charisma: 8 } })}><strong>2014 point buy</strong><small>27 points; scores cost more above 13</small></button></div>
-          {form.abilityMethod === "point-buy" && <div className={`point-buy-status ${pointsRemaining < 0 ? "invalid" : ""}`}><strong>{pointsRemaining} / 27 points remaining</strong><span>Scores must be 8-15 before ancestry adjustments. Costs: 8/0, 9/1, 10/2, 11/3, 12/4, 13/5, 14/7, 15/9.</span></div>}
+          <div><p className="section-kicker">Step 3 · Set the foundation</p><h3>Ability scores</h3><p className="form-intro">Choose how to establish pre-ancestry scores. Fixed ancestry adjustments are applied afterward and shown in the final preview.</p></div>
+          <div className="ability-method-options" role="group" aria-label="Ability score method">
+            <button type="button" className={form.abilityMethod === "manual" ? "selected" : ""} onClick={() => selectAbilityMethod("manual")}><strong>Manual scores</strong><small>Enter an array or house-rule values</small></button>
+            <button type="button" className={form.abilityMethod === "point-buy" ? "selected" : ""} onClick={() => selectAbilityMethod("point-buy")}><strong>2014 point buy</strong><small>27 points; scores cost more above 13</small></button>
+            <button type="button" className={form.abilityMethod === "rolled" ? "selected" : ""} onClick={() => selectAbilityMethod("rolled")}><strong><DiceFive size={17} /> House roll</strong><small>4d6 · reroll 1s · drop lowest · choose 1 of 2 sets</small></button>
+          </div>
+          {form.abilityMethod === "point-buy" && <div className={`point-buy-status ${pointsRemaining < 0 ? "invalid" : ""}`}><strong>{pointsRemaining} / 27 points remaining</strong><span>Scores must be 8-15 before ancestry adjustments. Costs: 8/0, 9/1, 10/2, 11/3, 12/4, 13/5, 14/7, 15/9.</span></div>}          {form.abilityMethod === "rolled" && form.rollSession && <div className="rolled-ability-workspace">
+            <div className="rolled-rule-banner">
+              <DiceFive size={20} />
+              <div>
+                <strong>House roll</strong>
+                <span>Each score uses 4d6. Ones reroll until settled, then one lowest die is dropped. Choose one complete set.</span>
+              </div>
+
+              {(rollReveal.status === "ready"
+                || rollReveal.status === "running") &&
+                <div className="roll-reveal-actions">
+                  {rollReveal.status === "ready" &&
+                    <button
+                      type="button"
+                      className="roll-start-reveal"
+                      onClick={beginRollReveal}
+                    >
+                      Start rolls
+                    </button>}
+
+                  <button
+                    type="button"
+                    className="roll-skip-reveal"
+                    onClick={skipRollReveal}
+                  >
+                    Skip reveal
+                  </button>
+                </div>}
+            </div>
+
+            <div className="rolled-set-grid">
+              {form.rollSession.sets.map((set, setIndex) => {
+                const selected =
+                  form.rollSession.selectedSetIndex
+                    === setIndex;
+
+                const candidateIndex =
+                  Math.min(
+                    rollReveal.candidateIndex,
+                    5,
+                  );
+
+                const candidate =
+                  set.candidates[candidateIndex];
+
+                return <article
+                  className={`rolled-set-card ${selected ? "selected" : ""} ${rollReveal.status === "running" ? "rolling-set" : ""}`}
+                  key={setIndex}
+                >
+                  <header>
+                    <div>
+                      <span>Option {setIndex + 1}</span>
+
+                      <strong>
+                        {rollCeremonyComplete
+                          ? selected
+                            ? "Selected set"
+                            : "Rolled set"
+                          : rollReveal.status === "ready"
+                            ? "Ready to roll"
+                            : `Rolling score ${candidateIndex + 1} of 6`}
+                      </strong>
+                    </div>
+
+                    {rollCeremonyComplete &&
+                      <button
+                        type="button"
+                        className={selected ? "selected" : ""}
+                        onClick={() =>
+                          chooseRolledSet(setIndex)
+                        }
+                      >
+                        {selected
+                          ? "Selected"
+                          : "Choose set"}
+                      </button>}
+                  </header>
+
+                  {!rollCeremonyComplete &&
+                    candidate &&
+                    <div className={`roll-live-stage ${rollReveal.status === "ready" ? "waiting" : ""}`}>
+                      <div className="roll-live-label">
+                        <span>
+                          Roll {candidateIndex + 1}
+                        </span>
+
+                        <small>
+                          {rollReveal.status === "ready"
+                            ? "Waiting to begin"
+                            : rollReveal.phase === "tumble"
+                              ? "Casting dice..."
+                              : rollReveal.phase === "result"
+                              ? "Settling..."
+                              : rollReveal.phase === "drop"
+                                ? "Dropping lowest..."
+                                : `Total ${candidate.total}`}
+                        </small>
+                      </div>
+
+                      <div className="roll-dice-row">
+                        {rollReveal.status === "ready"
+                          ? Array.from(
+                              { length: 4 },
+                              (_, dieIndex) =>
+                                <div
+                                  className="arcane-roll-die waiting"
+                                  key={`waiting-${setIndex}-${dieIndex}`}
+                                  aria-hidden="true"
+                                >
+                                  <div className="arcane-roll-die-face">
+                                    <span className="arcane-die-ready-mark">?</span>
+                                  </div>
+                                </div>,
+                            )
+                          : candidate.dice.map(
+                          (die, dieIndex) => {
+                            const history =
+                              Array.isArray(die.history)
+                                && die.history.length
+                                ? die.history
+                                : [die.value];
+
+                            const historyIndex =
+                              Math.min(
+                                rollReveal.historyIndex,
+                                history.length - 1,
+                              );
+
+                            const hasCurrentStep =
+                              rollReveal.historyIndex
+                              < history.length;
+
+                            const rolling =
+                              rollReveal.phase === "tumble"
+                              && hasCurrentStep;
+
+                            const cycleFace =
+                              (
+                                rollReveal.cycleTick
+                                + dieIndex * 2
+                                + setIndex
+                                + candidateIndex
+                              ) % 6 + 1;
+
+                            const value =
+                              rolling
+                                ? cycleFace
+                                : history[historyIndex];
+
+                            const reaction =
+                              rollReveal.phase === "result"
+                              && hasCurrentStep
+                                ? value === 1
+                                  ? "sad-one"
+                                  : value === 6
+                                    ? "happy-six"
+                                    : "normal-settle"
+                                : "";
+
+                            const dropped =
+                              (
+                                rollReveal.phase === "drop"
+                                || rollReveal.phase === "total"
+                              )
+                              && candidate.droppedIndex
+                                === dieIndex;
+
+                            return <RollDie
+                              key={`${candidateIndex}-${dieIndex}-${rollReveal.historyIndex}-${rollReveal.cycleTick}-${rollReveal.phase}`}
+                              value={value}
+                              rolling={rolling}
+                              reaction={reaction}
+                              dropped={dropped}
+                            />;
+                          },
+                        )}
+                      </div>
+
+                      <div
+                        className={`roll-consolidation ${rollReveal.status !== "ready" && rollReveal.phase === "total" ? "revealed" : ""}`}
+                        aria-live="polite"
+                      >
+                        {rollReveal.phase === "total"
+                          ? <>
+                              <div className="roll-survivor-equation">
+                                {candidate.keptValues.map(
+                                  (value, index) =>
+                                    <span
+                                      className="roll-survivor-part"
+                                      key={`${candidateIndex}-${index}-${value}`}
+                                    >
+                                      <strong>{value}</strong>
+                                      {index < candidate.keptValues.length - 1 &&
+                                        <em>+</em>}
+                                    </span>,
+                                )}
+                              </div>
+
+                              <div className="roll-consolidation-line">
+                                <span />
+                              </div>
+
+                              <div className="roll-live-total revealed">
+                                <small>Total</small>
+                                <strong>{candidate.total}</strong>
+                              </div>
+                            </>
+                          : <div className="roll-live-total">
+                              <strong>—</strong>
+                            </div>}
+                      </div>
+                    </div>}
+
+                  <div className="rolled-score-row">
+                    {set.totals.map(
+                      (total, scoreIndex) => {
+                        const revealed =
+                          rollCeremonyComplete
+                          || scoreIndex
+                            < rollReveal.candidateIndex
+                          || (
+                            scoreIndex
+                              === rollReveal.candidateIndex
+                            && rollReveal.phase === "total"
+                          );
+
+                        const isDump =
+                          selected
+                          && form.rollSession.dumpIndex
+                            === scoreIndex;
+
+                        return <button
+                          type="button"
+                          key={scoreIndex}
+                          className={`rolled-score ${isDump ? "dump" : ""} ${revealed ? "revealed" : "pending"}`}
+                          disabled={
+                            !rollCeremonyComplete
+                            || !selected
+                          }
+                          onClick={() =>
+                            chooseDumpStat(scoreIndex)
+                          }
+                          title={
+                            rollCeremonyComplete
+                              ? selected
+                                ? "Use this result as the mandatory dump stat"
+                                : "Choose this set first"
+                              : "Finish the roll reveal first"
+                          }
+                        >
+                          <strong>
+                            {revealed
+                              ? isDump
+                                ? 8
+                                : total
+                              : "—"}
+                          </strong>
+
+                          <small>
+                            {revealed
+                              ? isDump
+                                ? `Rolled ${total} · Dump`
+                                : `Roll ${scoreIndex + 1}`
+                              : `Roll ${scoreIndex + 1}`}
+                          </small>
+                        </button>;
+                      },
+                    )}
+                  </div>
+
+                  {selected
+                    && rollCeremonyComplete
+                    && <p className="rolled-set-hint">
+                      The lowest result was suggested automatically. Select any score above to move the Dump Stat designation; that result becomes 8.
+                    </p>}
+                </article>;
+              })}
+            </div>
+
+            {Number.isInteger(form.rollSession.selectedSetIndex) && <div className="rolled-assignment-panel">
+              <div>
+                <strong>Assign the selected values</strong>
+                <span>Drag a score into an ability slot, or click a score and then click an ability. Replacing an occupied slot returns its old score to the unassigned pool.</span>
+              </div>
+
+              <div className="rolled-score-pool">
+                <div className="rolled-score-pool-heading">
+                  <span>Unassigned scores</span>
+                  <small>
+                    {rolledValues.filter(
+                      (_, index) =>
+                        !ABILITIES.some(
+                          (ability) =>
+                            form.rollAssignment[ability] === index,
+                        ),
+                    ).length} remaining
+                  </small>
+                </div>
+
+                <div
+                  className="rolled-score-pool-values"
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+
+                    if (!Number.isInteger(draggedRollIndex)) {
+                      return;
+                    }
+
+                    const owner =
+                      ABILITIES.find(
+                        (ability) =>
+                          form.rollAssignment[ability]
+                            === draggedRollIndex,
+                      );
+
+                    if (owner) {
+                      clearRolledAbility(owner);
+                    }
+
+                    setDraggedRollIndex(null);
+                    setSelectedRollIndex(null);
+                  }}
+                >
+                  {rolledValues.map((value, index) => {
+                    const assigned =
+                      ABILITIES.some(
+                        (ability) =>
+                          form.rollAssignment[ability] === index,
+                      );
+
+                    if (assigned) {
+                      return null;
+                    }
+
+                    const selected =
+                      selectedRollIndex === index;
+
+                    return <button
+                      type="button"
+                      key={index}
+                      draggable
+                      className={`rolled-value-tile ${selected ? "selected" : ""}`}
+                      onClick={() => activateRolledValue(index)}
+                      onDragStart={() => {
+                        setDraggedRollIndex(index);
+                        setSelectedRollIndex(index);
+                      }}
+                      onDragEnd={() =>
+                        setDraggedRollIndex(null)
+                      }
+                      aria-pressed={selected}
+                    >
+                      <strong>{value}</strong>
+                      <small>
+                        {index === form.rollSession.dumpIndex
+                          ? "Dump Stat"
+                          : `Roll ${index + 1}`}
+                      </small>
+                    </button>;
+                  })}
+                </div>
+              </div>
+
+              <div className="rolled-ability-slots">
+                {ABILITIES.map((ability) => {
+                  const assignedIndex =
+                    form.rollAssignment[ability];
+
+                  const assigned =
+                    Number.isInteger(assignedIndex);
+
+                  const value =
+                    assigned
+                      ? rolledValues[assignedIndex]
+                      : null;
+
+                  const finalScore =
+                    assigned
+                      ? finalAbilities[ability]
+                      : null;
+
+                  const adjustment =
+                    Number(
+                      ancestryDetails.fixedAdjustments[ability]
+                      || 0,
+                    );
+
+                  return <button
+                    type="button"
+                    key={ability}
+                    className={`rolled-ability-slot ${assigned ? "filled" : "empty"} ${Number.isInteger(selectedRollIndex) ? "ready" : ""}`}
+                    draggable={assigned}
+                    onClick={() =>
+                      handleAbilitySlotClick(ability)
+                    }
+                    onDragStart={() => {
+                      if (!assigned) {
+                        return;
+                      }
+
+                      setDraggedRollIndex(
+                        assignedIndex,
+                      );
+
+                      setSelectedRollIndex(
+                        assignedIndex,
+                      );
+                    }}
+                    onDragEnd={() =>
+                      setDraggedRollIndex(null)
+                    }
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+
+                      if (
+                        Number.isInteger(
+                          draggedRollIndex,
+                        )
+                      ) {
+                        placeRolledValue(
+                          ability,
+                          draggedRollIndex,
+                        );
+                      }
+                    }}
+                  >
+                    <span className="rolled-ability-name">
+                      {ability.slice(0, 3).toUpperCase()}
+                    </span>
+
+                    {assigned
+                      ? <>
+                          <strong className="rolled-ability-value">
+                            {value}
+                          </strong>
+
+                          {adjustment !== 0 &&
+                            <span className="rolled-ability-adjustment">
+                              {adjustment > 0 ? "+" : ""}
+                              {adjustment} ancestry
+                            </span>}
+
+                          <small>
+                            Final {finalScore}
+                            {" · "}
+                            Modifier {abilityModifier(finalScore) >= 0 ? "+" : ""}
+                            {abilityModifier(finalScore)}
+                          </small>
+                        </>
+                      : <>
+                          <span className="rolled-empty-value">—</span>
+                          <small>Drop score here</small>
+                        </>}
+                  </button>;
+                })}
+              </div>
+
+              {!validateRolledAssignment(form.rollAssignment) &&
+                <div className="rolled-assignment-status">
+                  Fill all six ability slots to continue.
+                </div>}
+            </div>}
+          </div>}
           <div className="ability-adjustment-banner"><div><strong>Fixed adjustments</strong><span>{Object.entries(ancestryDetails.fixedAdjustments).length ? Object.entries(ancestryDetails.fixedAdjustments).map(([ability, amount]) => `${ability.slice(0, 3).toUpperCase()} ${amount >= 0 ? "+" : ""}${amount}`).join(" · ") : "None automated for this option"}</span></div>{ancestryDetails.flexible && <div className="manual-adjustment"><strong>Manual choice required</strong><span>{ancestryDetails.flexible}. Add this directly to the base fields below; the app will not choose abilities for you.</span></div>}</div>
-          <div className="ability-inputs creation-abilities">{ABILITIES.map((ability) => { const adjustment = Number(ancestryDetails.fixedAdjustments[ability] || 0); const finalScore = finalAbilities[ability]; return <label key={ability}><span>{ability.slice(0, 3).toUpperCase()}</span><input aria-label={`${ability} base score`} type="number" min={form.abilityMethod === "point-buy" ? 8 : 3} max={form.abilityMethod === "point-buy" ? 15 : 20} value={form.abilities[ability]} onChange={(event) => setForm({ ...form, abilities: { ...form.abilities, [ability]: Number(event.target.value) } })} /><Modifier amount={adjustment} /><strong>Final {finalScore}</strong><small>Modifier {abilityModifier(finalScore) >= 0 ? "+" : ""}{abilityModifier(finalScore)}</small></label>; })}</div>
+          {form.abilityMethod !== "rolled" && <div className="ability-inputs creation-abilities">{ABILITIES.map((ability) => { const adjustment = Number(ancestryDetails.fixedAdjustments[ability] || 0); const finalScore = finalAbilities[ability]; return <label key={ability}><span>{ability.slice(0, 3).toUpperCase()}</span><input aria-label={`${ability} base score`} type="number" min={form.abilityMethod === "point-buy" ? 8 : 3} max={form.abilityMethod === "point-buy" ? 15 : 20} value={form.abilities[ability]} onChange={(event) => setForm({ ...form, abilities: { ...form.abilities, [ability]: Number(event.target.value) } })} /><Modifier amount={adjustment} /><strong>Final {finalScore}</strong><small>Modifier {abilityModifier(finalScore) >= 0 ? "+" : ""}{abilityModifier(finalScore)}</small></label>; })}</div>}
           {!abilitiesValid && <div className="error-banner">{form.abilityMethod === "point-buy" && !pointBuyValid ? "Point-buy scores must stay from 8 to 15 and cannot exceed the 27-point budget." : "Every final score must be between 3 and 20. Lower a base score that exceeds the limit after its fixed adjustment."}</div>}
           <div className="creation-summary"><span>{background.name} grants <strong>{background.skills.join(" and ")}</strong>.</span><span>{rule.name} grants <strong>{form.classSkills.join(", ")}</strong>.</span><span>{equipment.length} distinct starting items will be added.</span><span>{form.startingLevel > 1 ? `${form.startingLevel - 1} guided level-up transactions will follow.` : "The character will begin at level 1."}</span></div>
         </section>}

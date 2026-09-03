@@ -1,5 +1,5 @@
 import {
-  Brain, ChatCircle, Eye, Feather, Footprints, Heartbeat, Lightning, Minus,
+  Brain, ChatCircle, Eye, Feather, Footprints, Heartbeat, Info, Lightning, Minus,
   Plus, ShieldCheck, Sparkle, Sword, Target, Tree, Wind,
   Camera,
   Campfire,
@@ -15,7 +15,7 @@ import { RestWizard } from "./RestWizard.jsx";
 import { PlayerAttacksPanel } from "./PlayerAttacksPanel.jsx";
 import { Modal } from "../components/Modal.jsx";
 import { setCurrentHitPoints, setExperience, setHitDieCurrent, setInspiration, setPactSlotCurrent, setResourceCurrent } from "../domain/mutations.js";
-import { normalizeAbilityScoreGeneration } from "../domain/provenance.js";
+import { abilityScoreGenerationDisplay } from "../domain/provenance.js";
 
 const abilityMeta = {
   strength: { label: "STR", icon: Sword },
@@ -26,33 +26,8 @@ const abilityMeta = {
   charisma: { label: "CHA", icon: ChatCircle },
 };
 
-const ABILITY_GENERATION_LABELS = {
-  manual: "Manual",
-  "point-buy": "Point Buy",
-  imported: "Imported",
-  legacy: "Legacy",
-};
-
 function abilityGenerationDisplay(character) {
-  const record =
-    normalizeAbilityScoreGeneration(
-      character?.abilityScoreGeneration,
-      character,
-    );
-
-  const method =
-    record?.method
-    && ABILITY_GENERATION_LABELS[record.method]
-      ? record.method
-      : "legacy";
-
-  return {
-    ...record,
-    method,
-    label:
-      record?.label
-      || ABILITY_GENERATION_LABELS[method],
-  };
+  return abilityScoreGenerationDisplay(character);
 }
 
 function abilityScoreLine(scores) {
@@ -101,7 +76,7 @@ function abilityGenerationTitle(record) {
   }
 
   if (record.method === "legacy") {
-    return "Legacy character: ability score generation method was not recorded.";
+    return "Unrecorded: the app knows this character's ability scores, but their generation method was not recorded.";
   }
 
   return `Ability scores generated using ${record.label}.`;
@@ -232,13 +207,19 @@ const armorRestrictions = graph.restrictions.armor;
               Ability scores
             </p>
 
-            <span
-              className={`ability-generation-chip ${abilityGeneration.method}`}
-              title={abilityGenerationTitle(abilityGeneration)}
-            >
-              <small>Generated</small>
-              <strong>{abilityGeneration.label}</strong>
-            </span>
+            <details className="ability-generation-help">
+              <summary
+                className={`ability-generation-chip ${abilityGeneration.method}`}
+                title={abilityGenerationTitle(abilityGeneration)}
+              >
+                <small>Generated</small>
+                <strong>{abilityGeneration.label}</strong>
+                <Info size={13} aria-hidden="true" />
+              </summary>
+              <p className="ability-generation-explanation">
+                {abilityGenerationTitle(abilityGeneration)}
+              </p>
+            </details>
           </div>
           <div className="ability-grid">
             {Object.entries(character.abilities).map(([key, score]) => {

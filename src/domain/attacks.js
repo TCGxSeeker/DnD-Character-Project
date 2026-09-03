@@ -151,6 +151,11 @@ function secondaryDamagePackets(item) {
     );
 }
 
+function numericBonus(value) {
+  const bonus = Number(value);
+  return Number.isFinite(bonus) ? bonus : 0;
+}
+
 export function attackRows(character) {
   const pb = proficiencyBonus(totalCharacterLevel(character.classLevels));
   const equippedWeapons = (character.inventory || []).filter((item) => item.equipped && Number(item.quantity ?? 1) > 0).map((item) => ({ item, weapon: weaponProfile(item) })).filter(({ weapon }) => weapon);
@@ -175,7 +180,9 @@ export function attackRows(character) {
     const isProficient = proficient(character, weapon, item), archery = weapon.attackType === "ranged" && hasChoice(character, "Archery") ? 2 : 0;
     const dueling = weapon.attackType === "melee" && use.wieldMode === "one-handed" && use.role !== "offhand" && otherWeapons.length === 0 && hasChoice(character, "Dueling") ? 2 : 0;
     const offhandModifier = use.role === "offhand" && modifier > 0 && !hasChoice(character, "Two-Weapon Fighting") ? 0 : modifier;
-    const magicBonus = Number(item.attackBonus ?? item.magicBonus ?? 0), damageBonus = offhandModifier + dueling + Number(item.damageBonus ?? item.magicBonus ?? 0);
+    const magicBonus = numericBonus(item.magicBonus);
+    const attackItemBonus = numericBonus(item.attackBonus) + magicBonus;
+    const damageBonus = offhandModifier + dueling + numericBonus(item.damageBonus) + magicBonus;
     const ammunition = ammunitionSummary(character, item);
     const special = specialWeaponRule2014(weapon);
     const damageDice = use.wieldMode === "two-handed" && weapon.versatileDamage ? weapon.versatileDamage : weapon.damageDice;
@@ -192,7 +199,7 @@ export function attackRows(character) {
     ];
     return {
       id: item.id, name: item.name, ability, proficient: isProficient, use,
-      attackBonus: modifier + (isProficient ? pb : 0) + archery + magicBonus,
+      attackBonus: modifier + (isProficient ? pb : 0) + archery + attackItemBonus,
       damage: special?.dealsDamage === false ? "—" : `${damageDice}${damageBonus ? ` ${damageBonus > 0 ? "+" : "−"} ${Math.abs(damageBonus)}` : ""}`,
       damageType: weapon.damageType,
       versatileDamage: weapon.versatileDamage,
@@ -206,7 +213,7 @@ export function attackRows(character) {
       reach: weapon.attackType === "melee" && use.attackMode !== "thrown" ? (weapon.reach ? 10 : 5) : null,
       disadvantageReasons, rules,
       available: offhandLegal && (!ammunition.required || ammunition.available > 0),
-      sources: [{ source: `${ability} modifier`, value: modifier }, ...(isProficient ? [{ source: "Proficiency bonus", value: pb }] : []), ...(archery ? [{ source: "Archery fighting style", value: archery }] : []), ...(dueling ? [{ source: "Dueling fighting style damage", value: dueling }] : []), ...(magicBonus ? [{ source: item.name, value: magicBonus }] : [])],
+      sources: [{ source: `${ability} modifier`, value: modifier }, ...(isProficient ? [{ source: "Proficiency bonus", value: pb }] : []), ...(archery ? [{ source: "Archery fighting style", value: archery }] : []), ...(dueling ? [{ source: "Dueling fighting style damage", value: dueling }] : []), ...(attackItemBonus ? [{ source: item.name, value: attackItemBonus }] : [])],
     };
   });
 }

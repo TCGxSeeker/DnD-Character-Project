@@ -111,6 +111,75 @@
   });
 }
 
+// Ability generation provenance stays with character-building coverage because
+// it is committed as part of the creation transaction and rendered on Sheet.
+{
+  const { default: test } = await import("node:test");
+  const { default: assert } = await import("node:assert/strict");
+  const {
+    abilityScoreGenerationDisplay,
+    abilityScoreGenerationRecord,
+    creationAbilityScoreMethod,
+    normalizeAbilityScoreGeneration,
+  } = await import("./provenance.js");
+
+  const scores = {
+    strength: 15,
+    dexterity: 14,
+    constitution: 13,
+    intelligence: 12,
+    wisdom: 10,
+    charisma: 8,
+  };
+
+  test("House Roll creation preserves rolled provenance and session metadata", () => {
+    const rolled = {
+      rule: "4d6-reroll-ones-drop-lowest",
+      sets: [{ totals: [15, 14, 13, 12, 10, 9] }, { totals: [16, 14, 12, 11, 10, 8] }],
+      selectedSetIndex: 1,
+      dumpIndex: 5,
+      assignment: { strength: 0, dexterity: 1, constitution: 2, intelligence: 3, wisdom: 4, charisma: 5 },
+    };
+    const record = abilityScoreGenerationRecord({
+      method: creationAbilityScoreMethod("rolled"),
+      baseScores: scores,
+      finalScores: scores,
+      rolled,
+    });
+
+    assert.equal(record.method, "rolled");
+    assert.deepEqual(record.rolled, rolled);
+
+    const normalized = normalizeAbilityScoreGeneration({
+      abilities: scores,
+      abilityScoreGeneration: record,
+    });
+    assert.equal(normalized.method, "rolled");
+    assert.deepEqual(normalized.rolled, rolled);
+    assert.equal(abilityScoreGenerationDisplay({ abilities: scores, abilityScoreGeneration: record }).label, "Rolled");
+  });
+
+  test("ability provenance display preserves established method labels and legacy fallback", () => {
+    const cases = [
+      ["manual", "Manual"],
+      ["point-buy", "Point Buy"],
+      ["imported", "Imported"],
+      ["rolled", "Rolled"],
+      ["unknown", "Unrecorded"],
+    ];
+
+    cases.forEach(([method, expected]) => {
+      const character = method === "unknown"
+        ? { abilities: scores, abilityScoreGeneration: { method } }
+        : { abilities: scores, abilityScoreGeneration: abilityScoreGenerationRecord({ method, baseScores: scores }) };
+      assert.equal(abilityScoreGenerationDisplay(character).label, expected, method);
+    });
+
+    assert.equal(creationAbilityScoreMethod("manual"), "manual");
+    assert.equal(creationAbilityScoreMethod("point-buy"), "point-buy");
+  });
+}
+
 // src/domain/choices.test.js
 {
   const { default: test } = await import("node:test");

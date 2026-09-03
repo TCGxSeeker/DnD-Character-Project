@@ -25,6 +25,53 @@
   });
 }
 
+// Editable feature History semantics share the broad state-integration suite
+// because they protect immutable character state and imported source records.
+{
+  const { default: test } = await import("node:test");
+  const { default: assert } = await import("node:assert/strict");
+  const { updateCharacterFeature } = await import("./features.js");
+
+  test("feature edits record meaningful changes and ignore normalized no-ops", () => {
+    const feature = {
+      id: "imported-feature",
+      name: "Moon Gift",
+      source: "5e Companion",
+      detail: "Original imported description.",
+      rawImportedDetail: "Original imported description.",
+      imported: true,
+      mechanics: { activation: "Action" },
+      provenance: {
+        type: "cah-import",
+        source: "5e Companion",
+        reviewStatus: "review-required",
+        reviewed: false,
+      },
+      effects: [],
+    };
+    const character = { features: [feature], history: [], notes: "preserve" };
+    const samePatch = {
+      name: " Moon Gift ",
+      source: " 5e Companion ",
+      detail: feature.detail,
+      mechanics: { activation: "Action", notes: "" },
+    };
+
+    const noOp = updateCharacterFeature(character, feature.id, samePatch);
+    assert.strictEqual(noOp, character);
+    assert.equal(noOp.history.length, 0);
+
+    const edited = updateCharacterFeature(character, feature.id, {
+      ...samePatch,
+      detail: "Updated player-facing description.",
+    });
+    assert.equal(edited.history.length, 1);
+    assert.equal(edited.history[0].type, "feature-changed");
+    assert.equal(edited.notes, "preserve");
+    assert.equal(edited.features[0].rawImportedDetail, feature.rawImportedDetail);
+  });
+}
+
 // src/domain/companions.test.js
 {
   const { default: test } = await import("node:test");

@@ -12,6 +12,50 @@ import {
 export const CONTENT_STORAGE_INDEXEDDB = "indexeddb";
 export const CONTENT_STORAGE_FILESYSTEM = "filesystem";
 
+export function createLatestContentPersistenceQueue(save) {
+  let active = false;
+  let pending = null;
+
+  async function drain() {
+    active = true;
+
+    while (pending) {
+      const current = pending;
+      pending = null;
+
+      try {
+        const result = await save(current.repository, current.backend);
+        current.resolve(result);
+      } catch (error) {
+        current.reject(error);
+      }
+    }
+
+    active = false;
+  }
+
+  return function enqueue(repository, backend) {
+    if (pending) {
+      pending.repository = repository;
+      pending.backend = backend;
+      return pending.promise;
+    }
+
+    let resolve;
+    let reject;
+    const promise = new Promise((onResolve, onReject) => {
+      resolve = onResolve;
+      reject = onReject;
+    });
+
+    pending = { repository, backend, promise, resolve, reject };
+
+    if (!active) void drain();
+
+    return promise;
+  };
+}
+
 export async function loadContentPersistence() {
   if (!desktopContentStorageAvailable()) {
     return {
@@ -47,7 +91,7 @@ export async function loadContentPersistence() {
   };
 }
 
-export async function saveContentPersistence(
+async function saveContentPersistenceImmediately(
   repository,
   backend,
 ) {
@@ -57,3 +101,7 @@ export async function saveContentPersistence(
 
   return saveContentRepository(repository);
 }
+
+export const saveContentPersistence = createLatestContentPersistenceQueue(
+  saveContentPersistenceImmediately,
+);

@@ -45,6 +45,42 @@
     assert.equal(calculateCharacterGraph({ ...character, inventory: [{ ...item, attuned: true }] }).armorClass.value, 13);
   });
 
+  test("only mechanically-active feature records execute typed effects", () => {
+    const effect = { ruleset: "5e-2014", operation: "bonus", target: "speed", value: 10 };
+    const cases = [
+      { mechanicsStatus: "descriptive-only", expectedSpeed: 30 },
+      { mechanicsStatus: "review-required", expectedSpeed: 30 },
+      { mechanicsStatus: "reviewed", expectedSpeed: 30 },
+      { mechanicsStatus: "mechanically-active", expectedSpeed: 40 },
+    ];
+
+    cases.forEach(({ mechanicsStatus, expectedSpeed }) => {
+      const result = calculateCharacterGraph({
+        ...character,
+        features: [{ id: `local-${mechanicsStatus}`, name: mechanicsStatus, localContent: true, mechanicsStatus, effects: [effect] }],
+      });
+      assert.equal(result.speed.value, expectedSpeed, mechanicsStatus);
+    });
+
+    const reviewedCahImport = calculateCharacterGraph({
+      ...character,
+      features: [{
+        id: "cah-reviewed-effect",
+        name: "Reviewed CAH feature",
+        imported: true,
+        provenance: { type: "cah-import", reviewStatus: "reviewed", reviewed: true },
+        effects: [effect],
+      }],
+    });
+    assert.equal(reviewedCahImport.speed.value, 30);
+
+    const canonical = calculateCharacterGraph({
+      ...character,
+      features: [{ id: "canonical-effect", name: "Canonical effect", granted: true, effects: [effect] }],
+    });
+    assert.equal(canonical.speed.value, 40);
+  });
+
   test("armor restrictions annotate affected rolls without changing their numeric bonuses", () => {
     const restricted = calculateCharacterGraph({ ...character, classLevels: [{ classId: "wizard", level: 5 }], levelHistory: Array.from({ length: 5 }, (_, index) => ({ level: index + 1, classId: "wizard", baseHp: index ? 4 : 6 })), inventory: [{ id: "chain", name: "Chain Mail", quantity: 1, equipped: true }] });
     assert.equal(restricted.restrictions.armor.active, true);

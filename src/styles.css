@@ -2541,3 +2541,1701 @@ select option { background: #10201d; }
     flex-wrap: wrap;
   }
 }
+/* J6B ROLLED ABILITY CREATOR */
+
+.ability-method-options {
+  flex-wrap: wrap;
+}
+
+.ability-method-options button strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.rolled-ability-workspace {
+  display: grid;
+  gap: 1rem;
+}
+
+.rolled-rule-banner,
+.rolled-assignment-panel {
+  border: 1px solid var(--line);
+  background: var(--glass-inset-bg);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+}
+
+.rolled-rule-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.rolled-rule-banner > svg {
+  flex: 0 0 auto;
+  color: var(--gold);
+  margin-top: 0.1rem;
+}
+
+.rolled-rule-banner div,
+.rolled-assignment-panel > div:first-child {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.rolled-rule-banner span,
+.rolled-assignment-panel span,
+.rolled-set-hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.rolled-set-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.rolled-set-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--glass-inset-bg);
+  border-radius: 15px;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.rolled-set-card.selected {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 28%, transparent);
+}
+
+.rolled-set-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.rolled-set-card header > div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.rolled-set-card header span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.rolled-set-card header button {
+  border: 1px solid var(--line);
+  background: var(--glass-floating-bg);
+  color: var(--ink);
+  border-radius: 9px;
+  padding: 0.45rem 0.65rem;
+  cursor: pointer;
+}
+
+.rolled-set-card header button.selected {
+  border-color: var(--gold);
+  color: var(--gold-strong);
+}
+
+.rolled-score-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.rolled-score {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--glass-floating-bg);
+  color: var(--ink);
+  border-radius: 11px;
+  padding: 0.55rem 0.25rem;
+  display: grid;
+  gap: 0.1rem;
+  text-align: center;
+}
+
+.rolled-score:not(:disabled) {
+  cursor: pointer;
+}
+
+.rolled-score:disabled {
+  opacity: 0.72;
+}
+
+.rolled-score strong {
+  font-size: 1.15rem;
+}
+
+.rolled-score small {
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+
+.rolled-score.dump {
+  border-color: var(--gold);
+  color: var(--gold-strong);
+  background:
+    color-mix(
+      in srgb,
+      var(--gold) 9%,
+      var(--glass-floating-bg)
+    );
+}
+
+.rolled-set-hint {
+  margin: 0;
+}
+
+.rolled-assignment-panel {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.rolled-assignment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.rolled-assignment-grid label {
+  min-width: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.rolled-assignment-grid label > span {
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.rolled-assignment-grid select {
+  min-width: 0;
+}
+
+.rolled-assignment-grid small {
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .rolled-set-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rolled-assignment-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .rolled-score-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .rolled-assignment-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* J6C1 ROLLED SCORE ASSIGNMENT */
+
+.rolled-score-pool {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--glass-floating-bg);
+}
+
+.rolled-score-pool-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.rolled-score-pool-heading > span {
+  color: var(--gold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rolled-score-pool-heading > small {
+  color: var(--muted);
+}
+
+.rolled-score-pool-values {
+  min-height: 78px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.25rem;
+  border-radius: 10px;
+}
+
+.rolled-value-tile {
+  min-width: 72px;
+  min-height: 66px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass-primary-bg);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.15rem;
+  cursor: grab;
+  animation: rolled-tile-return 220ms ease-out;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.rolled-value-tile:active,
+.rolled-ability-slot.filled:active {
+  cursor: grabbing;
+}
+
+.rolled-value-tile strong {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.rolled-value-tile small {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.rolled-value-tile.selected {
+  border-color: var(--gold);
+  color: var(--gold-strong);
+  transform: translateY(-2px);
+  background:
+    color-mix(
+      in srgb,
+      var(--gold) 8%,
+      var(--glass-primary-bg)
+    );
+}
+
+.rolled-ability-slots {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.rolled-ability-slot {
+  min-width: 0;
+  min-height: 118px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 14px;
+  background: var(--glass-inset-bg);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.rolled-ability-slot.filled {
+  border-style: solid;
+  border-color: var(--line);
+  background: var(--glass-floating-bg);
+  cursor: grab;
+}
+
+.rolled-ability-slot.empty.ready {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--gold) 65%,
+      var(--line)
+    );
+}
+
+.rolled-ability-slot:hover {
+  border-color: var(--gold);
+}
+
+.rolled-ability-name {
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.rolled-ability-value {
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.rolled-empty-value {
+  color: var(--dim);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.rolled-ability-adjustment {
+  color: var(--gold-strong);
+  font-size: 0.68rem;
+}
+
+.rolled-ability-slot small {
+  color: var(--muted);
+  text-align: center;
+}
+
+.rolled-assignment-status {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+@keyframes rolled-tile-return {
+  from {
+    opacity: 0.5;
+    transform: translateY(-5px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rolled-value-tile,
+  .rolled-ability-slot {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .rolled-ability-slots {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .rolled-score-pool-values {
+    display: grid;
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .rolled-value-tile {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .rolled-ability-slots {
+    grid-template-columns: 1fr;
+  }
+}
+/* J6C2 DICE CEREMONY */
+
+.roll-skip-reveal {
+  margin-left: auto;
+  align-self: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--glass-floating-bg);
+  color: var(--muted);
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+}
+
+.roll-skip-reveal:hover {
+  border-color: var(--gold);
+  color: var(--gold-strong);
+}
+
+.rolled-set-card.rolling-set {
+  overflow: hidden;
+}
+
+.roll-live-stage {
+  min-height: 154px;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.75rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      color-mix(
+        in srgb,
+        var(--teal) 7%,
+        transparent
+      ),
+      transparent 62%
+    ),
+    var(--glass-floating-bg);
+}
+
+.roll-live-label {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.roll-live-label > span {
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.roll-live-label > small {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.roll-dice-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 58px;
+}
+
+.arcane-roll-die {
+  width: 52px;
+  height: 52px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(
+        in srgb,
+        var(--glass-primary-bg) 88%,
+        var(--gold) 5%
+      ),
+      var(--glass-floating-bg)
+    );
+  box-shadow:
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--gold) 13%,
+        transparent
+      ),
+    0 6px 14px rgba(0, 0, 0, 0.16);
+  transform-origin: center;
+}
+
+.arcane-roll-die-face {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  grid-template-columns:
+    repeat(3, 1fr);
+  grid-template-rows:
+    repeat(3, 1fr);
+  place-items: center;
+}
+
+.arcane-die-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0;
+  background: var(--gold-strong);
+  box-shadow:
+    0 0 5px
+      color-mix(
+        in srgb,
+        var(--gold) 36%,
+        transparent
+      );
+}
+
+.arcane-die-pip.visible {
+  opacity: 1;
+}
+
+.arcane-roll-die.rolling {
+  animation:
+    arcane-die-tumble
+    360ms
+    cubic-bezier(.3,.8,.4,1);
+}
+
+.arcane-roll-die.rolling
+.arcane-roll-die-face {
+  opacity: 0.48;
+}
+
+.arcane-roll-die.normal-settle {
+  animation:
+    arcane-die-settle
+    180ms
+    ease-out;
+}
+
+.arcane-roll-die.sad-one {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--dim) 74%,
+      var(--line)
+    );
+  filter: saturate(0.58);
+  animation:
+    arcane-die-sad
+    430ms
+    ease-in-out;
+}
+
+.arcane-roll-die.happy-six {
+  border-color: var(--gold);
+  animation:
+    arcane-die-six
+    420ms
+    cubic-bezier(.22,.88,.34,1.2);
+  box-shadow:
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--gold-strong) 28%,
+        transparent
+      ),
+    0 0 18px
+      color-mix(
+        in srgb,
+        var(--gold) 28%,
+        transparent
+      );
+}
+
+.arcane-roll-die.dropped {
+  opacity: 0.36;
+  filter: saturate(0.35);
+  transform:
+    translateY(8px)
+    scale(0.91);
+  border-style: dashed;
+}
+
+.roll-live-total {
+  min-width: 64px;
+  min-height: 34px;
+  display: grid;
+  place-items: center;
+  border-top: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.roll-live-total.revealed {
+  color: var(--gold-strong);
+  animation:
+    arcane-total-reveal
+    260ms
+    ease-out;
+}
+
+.rolled-score.pending {
+  opacity: 0.35;
+}
+
+.rolled-score.revealed {
+  animation:
+    arcane-score-reveal
+    230ms
+    ease-out;
+}
+
+@keyframes arcane-die-tumble {
+  0% {
+    transform:
+      rotate(-18deg)
+      scale(0.9)
+      translateY(-4px);
+  }
+
+  36% {
+    transform:
+      rotate(14deg)
+      scale(1.04)
+      translateY(3px);
+  }
+
+  68% {
+    transform:
+      rotate(-8deg)
+      scale(0.97)
+      translateY(-2px);
+  }
+
+  100% {
+    transform:
+      rotate(0)
+      scale(1)
+      translateY(0);
+  }
+}
+
+@keyframes arcane-die-settle {
+  0% {
+    transform:
+      translateY(-3px)
+      scale(1.04);
+  }
+
+  100% {
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes arcane-die-sad {
+  0% {
+    transform:
+      translateX(0)
+      translateY(0);
+  }
+
+  18% {
+    transform:
+      translateX(-3px)
+      translateY(1px)
+      rotate(-3deg);
+  }
+
+  38% {
+    transform:
+      translateX(3px)
+      translateY(2px)
+      rotate(3deg);
+  }
+
+  58% {
+    transform:
+      translateX(-2px)
+      translateY(3px)
+      rotate(-2deg);
+  }
+
+  78% {
+    transform:
+      translateX(2px)
+      translateY(4px)
+      rotate(2deg);
+  }
+
+  100% {
+    transform:
+      translateX(0)
+      translateY(5px)
+      scale(0.95);
+  }
+}
+
+@keyframes arcane-die-six {
+  0% {
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+  36% {
+    transform:
+      translateY(-8px)
+      scale(1.11)
+      rotate(-3deg);
+  }
+
+  62% {
+    transform:
+      translateY(1px)
+      scale(0.98)
+      rotate(2deg);
+  }
+
+  82% {
+    transform:
+      translateY(-3px)
+      scale(1.04);
+  }
+
+  100% {
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes arcane-total-reveal {
+  from {
+    opacity: 0;
+    transform:
+      translateY(5px)
+      scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes arcane-score-reveal {
+  from {
+    opacity: 0.45;
+    transform:
+      translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arcane-roll-die,
+  .arcane-roll-die.rolling,
+  .arcane-roll-die.normal-settle,
+  .arcane-roll-die.sad-one,
+  .arcane-roll-die.happy-six,
+  .roll-live-total,
+  .rolled-score.revealed {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .roll-dice-row {
+    gap: 0.4rem;
+  }
+
+  .arcane-roll-die {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+  }
+
+  .arcane-roll-die-face {
+    width: 27px;
+    height: 27px;
+  }
+
+  .arcane-die-pip {
+    width: 5px;
+    height: 5px;
+  }
+
+  .rolled-rule-banner {
+    flex-wrap: wrap;
+  }
+
+  .roll-skip-reveal {
+    margin-left: 0;
+  }
+}
+/* J6C3 ROLL CONSOLIDATION */
+
+.roll-consolidation {
+  min-height: 72px;
+  width: min(100%, 250px);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.32rem;
+}
+
+.roll-survivor-equation {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.48rem;
+  color: var(--ink);
+}
+
+.roll-survivor-part {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.48rem;
+}
+
+.roll-survivor-part strong {
+  min-width: 22px;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.roll-survivor-part em {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-style: normal;
+}
+
+.roll-consolidation.revealed
+.roll-survivor-part {
+  animation:
+    arcane-survivor-converge
+    620ms
+    cubic-bezier(.22,.76,.3,1)
+    both;
+}
+
+.roll-consolidation.revealed
+.roll-survivor-part:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.roll-consolidation.revealed
+.roll-survivor-part:nth-child(2) {
+  animation-delay: 65ms;
+}
+
+.roll-consolidation.revealed
+.roll-survivor-part:nth-child(3) {
+  animation-delay: 130ms;
+}
+
+.roll-consolidation-line {
+  width: 100%;
+  height: 1px;
+  overflow: hidden;
+  background:
+    color-mix(
+      in srgb,
+      var(--line) 72%,
+      transparent
+    );
+}
+
+.roll-consolidation-line > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: center;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gold),
+      var(--gold-strong),
+      var(--gold),
+      transparent
+    );
+}
+
+.roll-consolidation.revealed
+.roll-consolidation-line > span {
+  animation:
+    arcane-consolidation-line
+    720ms
+    120ms
+    cubic-bezier(.22,.76,.3,1)
+    both;
+}
+
+.roll-live-total {
+  min-width: 74px;
+  min-height: 42px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.06rem;
+  border-top: 0;
+  color: var(--dim);
+  font-weight: 800;
+}
+
+.roll-live-total > small {
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.roll-live-total > strong {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.roll-live-total.revealed {
+  color: var(--gold-strong);
+  animation:
+    arcane-total-lock
+    680ms
+    260ms
+    cubic-bezier(.18,.84,.3,1.15)
+    both;
+}
+
+.roll-live-total.revealed::after {
+  content: "";
+  width: 34px;
+  height: 1px;
+  margin-top: 0.2rem;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gold),
+      transparent
+    );
+  animation:
+    arcane-total-seal
+    520ms
+    430ms
+    ease-out
+    both;
+}
+
+@keyframes arcane-survivor-converge {
+  0% {
+    opacity: 0.68;
+    transform:
+      translateY(-3px)
+      scale(0.96);
+  }
+
+  38% {
+    opacity: 1;
+    transform:
+      translateY(-5px)
+      scale(1.08);
+    color: var(--gold-strong);
+  }
+
+  100% {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes arcane-consolidation-line {
+  0% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  38% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.72;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes arcane-total-lock {
+  0% {
+    opacity: 0;
+    transform:
+      translateY(9px)
+      scale(0.78);
+    filter: blur(2px);
+  }
+
+  45% {
+    opacity: 1;
+    transform:
+      translateY(-3px)
+      scale(1.15);
+    filter: blur(0);
+  }
+
+  72% {
+    transform:
+      translateY(1px)
+      scale(0.97);
+  }
+
+  100% {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes arcane-total-seal {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/*
+  The old J6C2 total reveal animation is superseded
+  by the longer consolidation sequence above.
+*/
+.roll-consolidation
+.roll-live-total.revealed {
+  animation-name: arcane-total-lock;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roll-consolidation.revealed
+  .roll-survivor-part,
+
+  .roll-consolidation.revealed
+  .roll-consolidation-line > span,
+
+  .roll-live-total.revealed,
+
+  .roll-live-total.revealed::after {
+    animation: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .roll-consolidation {
+    width: min(100%, 210px);
+  }
+
+  .roll-survivor-equation {
+    gap: 0.34rem;
+  }
+
+  .roll-survivor-part {
+    gap: 0.34rem;
+  }
+}
+/* J6C4 VISIBLE FACE CYCLING */
+
+.arcane-roll-die.rolling {
+  animation:
+    arcane-die-face-cycle
+    130ms
+    cubic-bezier(.2,.72,.34,1);
+}
+
+.arcane-roll-die.rolling
+.arcane-roll-die-face {
+  opacity: 1;
+  animation:
+    arcane-face-flash
+    130ms
+    ease-out;
+}
+
+.arcane-roll-die.rolling
+.arcane-die-pip.visible {
+  animation:
+    arcane-pip-flash
+    130ms
+    ease-out;
+}
+
+/*
+  The final settled face should feel categorically
+  different from the fake cycling faces.
+*/
+.arcane-roll-die.normal-settle {
+  animation:
+    arcane-final-face-lock
+    360ms
+    cubic-bezier(.16,.84,.32,1.12);
+}
+
+.arcane-roll-die.sad-one {
+  animation:
+    arcane-die-sad
+    760ms
+    ease-in-out;
+}
+
+.arcane-roll-die.happy-six {
+  animation:
+    arcane-die-six
+    700ms
+    cubic-bezier(.22,.88,.34,1.2);
+}
+
+/*
+  Stretch the existing J6C3 consolidation instead
+  of replacing its visual language.
+*/
+
+.roll-consolidation.revealed
+.roll-survivor-part {
+  animation-duration: 1050ms;
+}
+
+.roll-consolidation.revealed
+.roll-survivor-part:nth-child(2) {
+  animation-delay: 110ms;
+}
+
+.roll-consolidation.revealed
+.roll-survivor-part:nth-child(3) {
+  animation-delay: 220ms;
+}
+
+.roll-consolidation.revealed
+.roll-consolidation-line > span {
+  animation-duration: 1200ms;
+  animation-delay: 220ms;
+}
+
+.roll-live-total.revealed {
+  animation-duration: 1100ms;
+  animation-delay: 480ms;
+}
+
+.roll-live-total.revealed::after {
+  animation-duration: 820ms;
+  animation-delay: 720ms;
+}
+
+@keyframes arcane-die-face-cycle {
+  0% {
+    transform:
+      translateY(-3px)
+      rotate(-5deg)
+      scale(0.92);
+    filter: blur(1.3px);
+  }
+
+  42% {
+    transform:
+      translateY(2px)
+      rotate(4deg)
+      scale(1.06);
+    filter: blur(0);
+  }
+
+  100% {
+    transform:
+      translateY(0)
+      rotate(0)
+      scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes arcane-face-flash {
+  0% {
+    opacity: 0.32;
+    transform: scale(0.82);
+  }
+
+  45% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 0.88;
+    transform: scale(1);
+  }
+}
+
+@keyframes arcane-pip-flash {
+  0% {
+    opacity: 0.18;
+    transform: scale(0.55);
+  }
+
+  48% {
+    opacity: 1;
+    transform: scale(1.22);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes arcane-final-face-lock {
+  0% {
+    transform:
+      translateY(-5px)
+      scale(1.09);
+    filter: blur(1.5px);
+    border-color: var(--line);
+  }
+
+  45% {
+    transform:
+      translateY(1px)
+      scale(0.98);
+    filter: blur(0);
+    border-color: var(--gold);
+  }
+
+  72% {
+    transform:
+      translateY(-1px)
+      scale(1.025);
+  }
+
+  100% {
+    transform:
+      translateY(0)
+      scale(1);
+    filter: blur(0);
+    border-color: var(--line-strong);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arcane-roll-die.rolling,
+  .arcane-roll-die.rolling
+  .arcane-roll-die-face,
+
+  .arcane-roll-die.rolling
+  .arcane-die-pip.visible,
+
+  .arcane-roll-die.normal-settle {
+    animation: none;
+  }
+}
+/* J6C5 CALM DICE CYCLING */
+
+/*
+  Face cycling should read as motion, not flashing.
+  J6C4 remains structurally intact; these overrides
+  intentionally soften only the pre-result phase.
+*/
+
+.arcane-roll-die.rolling {
+  animation:
+    arcane-die-face-cycle-calm
+    300ms
+    ease-in-out;
+}
+
+.arcane-roll-die.rolling
+.arcane-roll-die-face {
+  opacity: 0.88;
+  animation:
+    arcane-face-cycle-calm
+    300ms
+    ease-in-out;
+}
+
+.arcane-roll-die.rolling
+.arcane-die-pip.visible {
+  animation:
+    arcane-pip-cycle-calm
+    300ms
+    ease-in-out;
+}
+
+/*
+  Remove the bright pulse/glow sensation from each
+  fake rolling face. The final real result still
+  receives the existing result reaction.
+*/
+.arcane-roll-die.rolling
+.arcane-die-pip {
+  box-shadow: none;
+}
+
+@keyframes arcane-die-face-cycle-calm {
+  0% {
+    transform:
+      translateY(-2px)
+      rotate(-3deg)
+      scale(0.96);
+  }
+
+  50% {
+    transform:
+      translateY(1px)
+      rotate(2deg)
+      scale(1.02);
+  }
+
+  100% {
+    transform:
+      translateY(0)
+      rotate(0)
+      scale(1);
+  }
+}
+
+@keyframes arcane-face-cycle-calm {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.94;
+    transform: scale(1.02);
+  }
+
+  100% {
+    opacity: 0.88;
+    transform: scale(1);
+  }
+}
+
+@keyframes arcane-pip-cycle-calm {
+  0% {
+    opacity: 0.62;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04);
+  }
+
+  100% {
+    opacity: 0.82;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arcane-roll-die.rolling,
+  .arcane-roll-die.rolling
+  .arcane-roll-die-face,
+  .arcane-roll-die.rolling
+  .arcane-die-pip.visible {
+    animation: none;
+  }
+}
+/* J6C6 START ROLLS GATE */
+
+.roll-reveal-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.roll-start-reveal,
+.roll-skip-reveal {
+  min-height: 38px;
+}
+
+.roll-start-reveal {
+  border: 1px solid var(--gold);
+  border-radius: 9px;
+  background:
+    color-mix(
+      in srgb,
+      var(--gold) 9%,
+      var(--glass-floating-bg)
+    );
+  color: var(--gold-strong);
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.roll-start-reveal:hover {
+  background:
+    color-mix(
+      in srgb,
+      var(--gold) 15%,
+      var(--glass-floating-bg)
+    );
+}
+
+.roll-live-stage.waiting {
+  opacity: 0.82;
+}
+
+.arcane-roll-die.waiting {
+  opacity: 0.58;
+  border-style: dashed;
+  box-shadow: none;
+  transform: none;
+}
+
+.arcane-die-ready-mark {
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+@media (max-width: 520px) {
+  .roll-reveal-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+/* J6C7 CUTE READY DICE */
+
+.arcane-roll-die.waiting {
+  opacity: 1;
+  border-style: solid;
+  border-color:
+    color-mix(
+      in srgb,
+      var(--gold) 34%,
+      var(--line)
+    );
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(
+        in srgb,
+        var(--glass-primary-bg) 92%,
+        var(--gold) 4%
+      ),
+      var(--glass-floating-bg)
+    );
+  box-shadow:
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--gold) 10%,
+        transparent
+      ),
+    0 4px 10px rgba(0, 0, 0, 0.12);
+  transform: none;
+}
+
+.arcane-roll-die.waiting
+.arcane-roll-die-face {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.arcane-die-ready-mark {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color:
+    color-mix(
+      in srgb,
+      var(--gold-strong) 72%,
+      var(--muted)
+    );
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.82;
+  text-shadow:
+    0 0 7px
+      color-mix(
+        in srgb,
+        var(--gold) 18%,
+        transparent
+      );
+}
+/* J6C8 CENTER READY DICE */
+
+.arcane-roll-die.waiting
+.arcane-roll-die-face {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  grid-template-columns: none;
+  grid-template-rows: none;
+}
+
+.arcane-die-ready-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  color: var(--gold-strong);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.9;
+  transform: translateY(-1px);
+  text-shadow:
+    0 0 8px
+      color-mix(
+        in srgb,
+        var(--gold) 22%,
+        transparent
+      );
+}
+
+.arcane-roll-die.waiting {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--gold) 42%,
+      var(--line)
+    );
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      color-mix(
+        in srgb,
+        var(--gold) 5%,
+        transparent
+      ),
+      transparent 62%
+    ),
+    var(--glass-floating-bg);
+}
+
+/* P4 stabilization: editor reachability and explicit loading/help states. */
+.manager-loading-state {
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.manager-loading-state svg {
+  color: var(--gold);
+}
+
+.inventory-table article.editing,
+.feature-record.editing {
+  scroll-margin-top: 5.75rem;
+}
+
+.feature-record-list:has(.feature-record.editing) {
+  overflow: visible;
+}
+
+.inventory-editor-actions.editor-sticky-actions,
+.feature-editor-actions.editor-sticky-actions {
+  position: sticky;
+  top: 5.4rem;
+  z-index: 8;
+  margin: 0.65rem 0 0.85rem;
+  padding: 0.55rem;
+  border: 1px solid rgba(194, 157, 87, 0.14);
+  border-radius: 0.65rem;
+  background: rgba(7, 20, 21, 0.94);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.editor-sticky-actions .form-error {
+  margin: 0 auto 0 0;
+}
+
+.ability-generation-help {
+  position: relative;
+  z-index: 9;
+}
+
+.ability-generation-help > summary {
+  list-style: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ability-generation-help > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ability-generation-help > summary:focus-visible {
+  outline: 2px solid rgba(241, 219, 163, 0.78);
+  outline-offset: 3px;
+}
+
+.ability-generation-help[open] .ability-generation-chip {
+  border-color: rgba(241, 219, 163, 0.52);
+  background: rgba(194, 157, 87, 0.14);
+}
+
+.ability-generation-explanation {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  width: min(22rem, calc(100vw - 2rem));
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(194, 157, 87, 0.25);
+  border-radius: 0.75rem;
+  background: rgba(7, 20, 21, 0.98);
+  color: var(--muted);
+  box-shadow: var(--shadow);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  white-space: normal;
+}
+
+@media (max-width: 700px) {
+  .inventory-table article.editing,
+  .feature-record.editing {
+    scroll-margin-top: 4.75rem;
+  }
+
+  .inventory-editor-actions.editor-sticky-actions,
+  .feature-editor-actions.editor-sticky-actions {
+    top: 4.5rem;
+    flex-wrap: wrap;
+  }
+
+  .editor-sticky-actions .form-error {
+    flex-basis: 100%;
+  }
+
+  .ability-generation-explanation {
+    right: auto;
+    left: 0;
+  }
+}

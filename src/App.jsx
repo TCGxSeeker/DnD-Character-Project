@@ -1,8 +1,9 @@
 import {
   Backpack, BookOpen, ClockCounterClockwise, DownloadSimple, List, NotePencil,
-  Scroll, Sparkle, UserCircle, X,
+  Scroll, Sparkle, SpinnerGap, UserCircle, X,
 } from "@phosphor-icons/react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Modal } from "./components/Modal.jsx";
 import { CharacterSidebar } from "./features/CharacterSidebar.jsx";
 import { CharacterImportModal } from "./features/CharacterImportModal.jsx";
 import { resolveCharacterPortrait } from "./domain/portraits.js";
@@ -31,6 +32,22 @@ const ContentManager = lazy(() => import("./features/ContentManager.jsx").then((
 
 function ViewFallback() {
   return <div className="view-fallback glass-panel material-primary" role="status"><Sparkle size={22} /><span>Opening character records…</span></div>;
+}
+
+function ContentManagerFallback({ onClose }) {
+  return (
+    <Modal
+      title="Manage content"
+      eyebrow="Loading local content library"
+      onClose={onClose}
+      className="manager-modal"
+    >
+      <div className="manager-loading-state" role="status" aria-live="polite">
+        <SpinnerGap className="spin" size={22} />
+        <span>Opening Manage Content…</span>
+      </div>
+    </Modal>
+  );
 }
 
 const tabs = [
@@ -181,7 +198,7 @@ export function App() {
       </main>
 
       {(toast || saveError) && <div className={`toast ${saveError ? "error" : ""}`}>{saveError || toast}</div>}
-      <Suspense fallback={null}>
+      <Suspense fallback={contentManagerOpen ? <ContentManagerFallback onClose={() => setContentManagerOpen(false)} /> : null}>
         {importCandidate && <CharacterImportModal candidate={importCandidate} onClose={() => setImportCandidate(null)} onConfirm={() => { addCharacter(importCandidate.character); setImportCandidate(null); setActiveTab("sheet"); setSidebarOpen(false); notify(`${importCandidate.character.name} imported as a native character.`); }} />}
         {creatorOpen && <CharacterCreator activePacks={activePacks} onClose={() => setCreatorOpen(false)} onCreate={(character, targetLevel) => { addCharacter(character); setActiveTab("sheet"); setCreationTargetLevel(targetLevel > 1 ? targetLevel : null); notify(targetLevel > 1 ? `${character.name} created at level 1. Guided progression is starting.` : `${character.name} created.`); }} />}
         {managerOpen && <CharacterManager characters={state.characters} activeId={state.activeCharacterId} onClose={() => setManagerOpen(false)} onSelect={(id) => { setActive(id); notify("Active character changed."); }} onDuplicate={duplicateCharacter} onDelete={deleteCharacter} />}

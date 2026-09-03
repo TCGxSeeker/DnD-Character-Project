@@ -7,6 +7,7 @@ import {
 } from "@phosphor-icons/react";
 import {
   useEffect,
+  useRef,
   useState,
 } from "react";
 import {
@@ -192,6 +193,30 @@ function FeatureEditor({
 
   return (
     <div className="feature-inline-editor">
+      <div className="feature-editor-actions editor-sticky-actions">
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="button"
+          className="feature-subtle-action"
+          onClick={onClose}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          className="feature-primary-action"
+          onClick={save}
+        >
+          Save & close
+        </button>
+      </div>
+
       <div className="feature-editor-grid">
         <label>
           <span>Name</span>
@@ -375,32 +400,6 @@ function FeatureEditor({
           )}
       </section>
 
-      {error && (
-        <p
-          className="form-error"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-
-      <div className="feature-editor-actions">
-        <button
-          type="button"
-          className="feature-subtle-action"
-          onClick={onClose}
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          className="feature-primary-action"
-          onClick={save}
-        >
-          Save & close
-        </button>
-      </div>
     </div>
   );
 }
@@ -412,6 +411,17 @@ function FeatureCard({
 }) {
   const [editing, setEditing] =
     useState(false);
+  const recordRef = useRef(null);
+
+  useEffect(() => {
+    if (!editing || !window.matchMedia("(max-width: 700px)").matches) return undefined;
+
+    const frame = window.requestAnimationFrame(() => {
+      recordRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [editing]);
 
   const owned =
     ownedCharacterFeature(
@@ -446,6 +456,7 @@ function FeatureCard({
 
   return (
     <article
+      ref={recordRef}
       className={[
         "feature-record",
         editing

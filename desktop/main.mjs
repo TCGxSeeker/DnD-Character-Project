@@ -1,12 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
-import {
-  mkdir,
-  readFile,
-  rm,
-  writeFile,
-} from "node:fs/promises";
 import { join } from "node:path";
 import { createPortableServer } from "../scripts/serve-portable.mjs";
+import {
+  clearContentRepositoryFiles,
+  loadContentRepositoryFile,
+  saveContentRepositoryFile,
+} from "./contentRepositoryFile.mjs";
 
 const APP_PORT = 41731;
 const APP_ORIGIN = `http://127.0.0.1:${APP_PORT}`;
@@ -32,101 +31,21 @@ function contentRepositoryPath() {
 }
 
 async function loadDesktopContentRepository() {
-  const filePath = contentRepositoryPath();
-
-  try {
-    const text = await readFile(filePath, "utf8");
-
-    return {
-      exists: true,
-      repositoryJson: text,
-    };
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      return {
-        exists: false,
-        repositoryJson: null,
-      };
-    }
-
-    throw error;
-  }
+  return loadContentRepositoryFile(contentRepositoryPath());
 }
 
 async function saveDesktopContentRepository(
   repositoryJson,
 ) {
-  if (typeof repositoryJson !== "string") {
-    throw new TypeError(
-      "Desktop content repository must be serialized JSON.",
-    );
-  }
-
-  const byteLength = Buffer.byteLength(
+  return saveContentRepositoryFile(
+    contentRepositoryPath(),
     repositoryJson,
-    "utf8",
+    { maxBytes: MAX_CONTENT_REPOSITORY_BYTES },
   );
-
-  if (byteLength > MAX_CONTENT_REPOSITORY_BYTES) {
-    throw new Error(
-      "Desktop content repository exceeds the 25 MB safety limit.",
-    );
-  }
-
-  // Parse here as a basic corruption guard. The renderer remains
-  // responsible for validating the Arcane Observatory repository schema.
-  JSON.parse(repositoryJson);
-
-  const directory = contentDirectoryPath();
-  const filePath = contentRepositoryPath();
-  const temporaryPath = `${filePath}.tmp`;
-
-  await mkdir(directory, { recursive: true });
-
-  try {
-    await writeFile(
-      temporaryPath,
-      repositoryJson,
-      "utf8",
-    );
-
-    // Windows replacement semantics are more reliable when the old
-    // destination is explicitly removed before the temporary file moves.
-    await rm(filePath, { force: true });
-
-    const temporaryContents = await readFile(
-      temporaryPath,
-      "utf8",
-    );
-
-    await writeFile(
-      filePath,
-      temporaryContents,
-      "utf8",
-    );
-
-    await rm(temporaryPath, { force: true });
-  } catch (error) {
-    await rm(temporaryPath, { force: true })
-      .catch(() => {});
-    throw error;
-  }
-
-  return {
-    saved: true,
-    byteLength,
-  };
 }
 
 async function clearDesktopContentRepository() {
-  await rm(
-    contentRepositoryPath(),
-    { force: true },
-  );
-
-  return {
-    cleared: true,
-  };
+  return clearContentRepositoryFiles(contentRepositoryPath());
 }
 
 function registerContentIpc() {

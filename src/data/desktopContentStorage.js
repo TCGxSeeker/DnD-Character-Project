@@ -44,25 +44,41 @@ export async function loadDesktopContentRepository() {
     };
   }
 
-  if (typeof result.repositoryJson !== "string") {
-    throw new Error(
-      "Desktop content repository did not return valid serialized data.",
-    );
+  function parseAndValidate(repositoryJson) {
+    if (typeof repositoryJson !== "string") {
+      throw new Error(
+        "Desktop content repository did not return valid serialized data.",
+      );
+    }
+
+    try {
+      return validateContentRepository(JSON.parse(repositoryJson));
+    } catch (error) {
+      throw new Error(
+        "Desktop content repository contains invalid data.",
+        { cause: error },
+      );
+    }
   }
 
-  let parsed;
+  let repository;
+  let recoveredFromBackup = result.recoveredFromBackup === true;
 
   try {
-    parsed = JSON.parse(result.repositoryJson);
-  } catch {
-    throw new Error(
-      "Desktop content repository contains invalid JSON.",
-    );
+    repository = parseAndValidate(result.repositoryJson);
+  } catch (primaryError) {
+    if (typeof result.backupRepositoryJson !== "string") {
+      throw primaryError;
+    }
+
+    repository = parseAndValidate(result.backupRepositoryJson);
+    recoveredFromBackup = true;
   }
 
   return {
     exists: true,
-    repository: validateContentRepository(parsed),
+    repository,
+    recoveredFromBackup,
   };
 }
 

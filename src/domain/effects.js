@@ -25,6 +25,28 @@ function activeItemEffects(item) {
   return list(item.effects).filter((effect) => (!effect.requiresEquipped || item.equipped) && (!effect.requiresAttunement || item.attuned));
 }
 
+function activeFeatureEffects(feature) {
+  const mechanicsStatus = String(feature?.mechanicsStatus || "")
+    .trim()
+    .toLowerCase();
+
+  const provenanceType = String(feature?.provenance?.type || "")
+    .trim()
+    .toLowerCase();
+
+  const requiresMechanicalAuthorization = Boolean(mechanicsStatus)
+    || feature?.localContent === true
+    || feature?.imported === true
+    || feature?.custom === true
+    || ["local-content", "cah-import", "custom"].includes(provenanceType);
+
+  if (requiresMechanicalAuthorization && mechanicsStatus !== "mechanically-active") {
+    return [];
+  }
+
+  return list(feature?.effects);
+}
+
 function equippedState(character) {
   const equipped = list(character?.inventory).filter((item) => item?.equipped && Number(item.quantity ?? 1) > 0);
   const armor = equipped.filter((item) => item?.equipment?.kind === "armor" || /armor|mail|plate/i.test(String(item?.name || "")));
@@ -49,7 +71,7 @@ export function collectCharacterEffects(character) {
     ...list(character.effects),
     ...list(character.ancestryEffects),
     ...list(character.backgroundEffects),
-    ...list(character.features).flatMap((entry) => list(entry.effects).map((effect) => ({ source: entry.name, ...effect }))),
+    ...list(character.features).flatMap((entry) => activeFeatureEffects(entry).map((effect) => ({ source: entry.name, ...effect }))),
     ...list(character.inventory).flatMap((entry) => activeItemEffects(entry).map((effect) => ({ source: entry.name, ...effect }))),
     ...list(character.conditions).flatMap((entry) => list(entry.effects).map((effect) => ({ source: entry.name, ...effect }))),
   ].filter((effect) => effect && effect.enabled !== false && requirementsMet(effect, character || {}) && (!effect.ruleset || effect.ruleset === EFFECT_RULESET));

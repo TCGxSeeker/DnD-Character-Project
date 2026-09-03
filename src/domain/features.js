@@ -167,6 +167,27 @@ export function featureMechanicsEntries(
     );
 }
 
+function comparableFeature(feature) {
+  const provenance = featureProvenance(feature);
+
+  return JSON.stringify({
+    name: String(feature?.name || "").trim(),
+    source: String(feature?.source || "").trim(),
+    detail: String(feature?.detail || ""),
+    mechanics: normalizeFeatureMechanics(feature?.mechanics),
+    provenance,
+    rawImportedDetail:
+      provenance.type === "cah-import"
+        ? String(
+            feature?.rawImportedDetail
+            ?? feature?.rawDetail
+            ?? feature?.detail
+            ?? "",
+          )
+        : feature?.rawImportedDetail,
+  });
+}
+
 export function updateCharacterFeature(
   character,
   featureOrId,
@@ -298,6 +319,10 @@ export function updateCharacterFeature(
             ),
         }),
   };
+
+  if (comparableFeature(existing) === comparableFeature(nextFeature)) {
+    return character;
+  }
 
   const features =
     character.features.map(

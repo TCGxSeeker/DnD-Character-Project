@@ -9,7 +9,7 @@ import {
   Trash,
   WifiHigh,
 } from "@phosphor-icons/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { searchItems } from "../data/open5e.js";
 import {
   calculateArmorClass,
@@ -28,6 +28,7 @@ import {
   attunementSummary,
   carryingSummary,
   consumeAmmunition,
+  createCustomEquipmentItem,
   itemWeight,
   setEquipmentAttuned,
   setEquipmentEquipped,
@@ -436,6 +437,30 @@ function InventoryEditor({
           {mode === "create"
             ? "Cancel"
             : "Collapse"}
+        </button>
+      </div>
+
+      <div className="inventory-editor-actions editor-sticky-actions">
+        {saveError && (
+          <p className="form-error" role="alert">
+            {saveError}
+          </p>
+        )}
+
+        <button
+          type="button"
+          className="subtle-action"
+          onClick={onClose}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          className="primary-inline-action"
+          onClick={save}
+        >
+          Save & close
         </button>
       </div>
 
@@ -914,29 +939,6 @@ function InventoryEditor({
         )}
       </section>
 
-      {saveError && (
-        <p className="form-error" role="alert">
-          {saveError}
-        </p>
-      )}
-
-      <div className="inventory-editor-actions">
-        <button
-          type="button"
-          className="subtle-action"
-          onClick={onClose}
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          className="primary-inline-action"
-          onClick={save}
-        >
-          Save & close
-        </button>
-      </div>
     </div>
   );
 }
@@ -951,11 +953,22 @@ function InventoryItemRow({
     String(item.quantity ?? 0)
   );
   const [editing, setEditing] = useState(false);
+  const recordRef = useRef(null);
 
   useEffect(
     () => setQuantity(String(item.quantity ?? 0)),
     [item.quantity]
   );
+
+  useEffect(() => {
+    if (!editing || !window.matchMedia("(max-width: 700px)").matches) return undefined;
+
+    const frame = window.requestAnimationFrame(() => {
+      recordRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [editing]);
 
   const weapon = weaponProfile(item);
   const use = weapon ? weaponUse(item, weapon) : null;
@@ -1000,6 +1013,7 @@ function InventoryItemRow({
 
   return (
     <article
+      ref={recordRef}
       className={[
         item.equipped ? "equipped" : "",
         editing ? "editing" : "",
@@ -1414,61 +1428,10 @@ export function InventoryView({
             .toString(36)
             .slice(2, 9)}`;
 
-    const baseItem = {
+    return createCustomEquipmentItem(
+      character,
       id,
-      name: "New Custom Item",
-      quantity: 1,
-      detail: "",
-      weight: 0,
-      equipped: false,
-      attuned: false,
-
-      attackAbility: "auto",
-      proficiencyOverride: "auto",
-      attackBonus: 0,
-      damageBonus: 0,
-      magicBonus: 0,
-      secondaryDamage: [],
-
-      equipment: {
-        kind: "item",
-      },
-
-      provenance: {
-        type: "custom",
-        source: "Custom",
-        reviewStatus: "reviewed",
-        reviewed: true,
-      },
-    };
-
-    const withItem = {
-      ...character,
-      inventory: [
-        ...character.inventory,
-        baseItem,
-      ],
-    };
-
-    const normalized =
-      updateEquipmentItem(
-        withItem,
-        id,
-        patch
-      );
-
-    return appendHistoryEvent(
-      normalized,
-      {
-        type: "item-added",
-        title: `Created ${patch.name.trim() || "custom item"}`,
-        detail: "Custom inventory item created",
-        changes: {
-          itemsAdded: [
-            patch.name.trim() || "Custom item",
-          ],
-        },
-      }
+      patch,
     );
   }
   function removeItem(item) {
